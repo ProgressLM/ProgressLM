@@ -636,6 +636,67 @@ class GAC_model():
         #这里的value也是done，越接近100完成度越高
         return critic_list,value_list
 
+    def get_trajectory_critic_multi_gpu(
+        self,
+        task: str,
+        image_list: List[Image.Image],
+        num_gpus: int,
+        model_path: str,
+        model_type: str = 'internvl2',
+        ref_image_list: Optional[List[Image.Image]] = None,
+        batch_num: int = 5,
+        ref_num: int = 6,
+        skip: int = 1,
+        rich: bool = False,
+        think: bool = False,
+        reverse_eval: bool = False,
+        frame_skip: bool = True
+    ) -> Tuple[List[str], List[float]]:
+        """
+        Multi-GPU data parallel trajectory critic evaluation.
+
+        This method wraps the multi_gpu_trajectory_critic function to provide
+        a consistent interface with the single-GPU get_trajectory_critic method.
+
+        Args:
+            task: Task description
+            image_list: List of PIL images to evaluate
+            num_gpus: Number of GPUs to use for parallel processing
+            model_path: Path to VLAC model (needed for worker processes)
+            model_type: Model type (default: 'internvl2')
+            ref_image_list: Optional reference trajectory images
+            batch_num: Batch size for inference on each GPU
+            ref_num: Number of reference images to sample
+            skip: Frame skip step for pair-wise evaluation
+            rich: Enable rich mode (decimal values)
+            think: Enable Chain-of-Thought reasoning
+            reverse_eval: Enable reverse evaluation
+            frame_skip: Enable frame skip mode
+
+        Returns:
+            critic_list: List of critic scores
+            value_list: List of progress values (0-100)
+        """
+        from multi_gpu_utils import multi_gpu_trajectory_critic
+
+        return multi_gpu_trajectory_critic(
+            model_path=model_path,
+            model_type=model_type,
+            task=task,
+            image_list=image_list,
+            num_gpus=num_gpus,
+            ref_image_list=ref_image_list,
+            batch_num=batch_num,
+            ref_num=ref_num,
+            skip=skip,
+            temperature=self.temperature,
+            top_k=self.top_k,
+            rich=rich,
+            think=think,
+            reverse_eval=reverse_eval,
+            frame_skip=frame_skip
+        )
+
     def magic_smooth(self,task,file_path,hz=10,value_simple='mix_f',ref_image_list=None,ref_num=9,think=False,max_skip=3):
         import os
         import pickle

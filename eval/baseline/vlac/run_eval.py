@@ -104,6 +104,10 @@ def parse_args():
     parser.add_argument('--reverse_eval', action='store_true',
                         help='Enable reverse evaluation (for VROC)')
 
+    # 可选参数 - 多GPU配置
+    parser.add_argument('--num_gpus', type=int, default=1,
+                        help='Number of GPUs to use for data parallel inference (default: 1)')
+
     # 可选参数 - 输入输出
     parser.add_argument('--image_pattern', type=str, default='*.jpg,*.png',
                         help='Image file pattern (comma-separated)')
@@ -133,6 +137,11 @@ def main():
     print(f"Device: {args.device}")
     print(f"Batch Size: {args.batch_num}")
     print(f"Skip: {args.skip}")
+    print(f"Number of GPUs: {args.num_gpus}")
+    if args.num_gpus > 1:
+        print(f"Mode: Multi-GPU Data Parallel")
+    else:
+        print(f"Mode: Single GPU")
     print("="*80)
 
     # ========== 1. 加载图像 ==========
@@ -158,22 +167,31 @@ def main():
     print(f"Image loading completed in {load_time:.2f}s")
 
     # ========== 2. 初始化模型 ==========
-    print("\n[Step 2/4] Initializing VLAC model...")
-    start_time = time.time()
+    # For multi-GPU mode, we skip initialization here and let workers initialize
+    # For single-GPU mode, we initialize as before
+    init_time = 0
+    critic = None
 
-    critic = GAC_model(tag='critic')
-    critic.init_model(
-        model_path=args.model_path,
-        model_type=args.model_type,
-        device_map=args.device
-    )
-    critic.temperature = args.temperature
-    critic.top_k = args.top_k
-    critic.set_config()
-    critic.set_system_prompt()
+    if args.num_gpus == 1:
+        print("\n[Step 2/4] Initializing VLAC model...")
+        start_time = time.time()
 
-    init_time = time.time() - start_time
-    print(f"Model initialization completed in {init_time:.2f}s")
+        critic = GAC_model(tag='critic')
+        critic.init_model(
+            model_path=args.model_path,
+            model_type=args.model_type,
+            device_map=args.device
+        )
+        critic.temperature = args.temperature
+        critic.top_k = args.top_k
+        critic.set_config()
+        critic.set_system_prompt()
+
+        init_time = time.time() - start_time
+        print(f"Model initialization completed in {init_time:.2f}s")
+    else:
+        print("\n[Step 2/4] Skipping model initialization (multi-GPU workers will initialize)")
+        print(f"Each of the {args.num_gpus} GPUs will initialize its own model instance")
 
     # ========== 3. 运行评估 ==========
     print("\n[Step 3/4] Running trajectory evaluation...")
@@ -182,24 +200,51 @@ def main():
 
     start_time = time.time()
 
-    critic_list, value_list = critic.get_trajectory_critic(
-        task=args.task,
-        image_list=test_images,
-        ref_image_list=ref_images,
-        batch_num=args.batch_num,
-        ref_num=args.ref_num if ref_images else 0,
-        skip=args.skip,
-        rich=args.rich,
-        think=args.think,
-        reverse_eval=args.reverse_eval,
-        frame_skip=True
-    )
+    if args.num_gpus == 1:
+        # Single GPU mode
+        critic_list, value_list = critic.get_trajectory_critic(
+            task=args.task,
+            image_list=test_images,
+            ref_image_list=ref_images,
+            batch_num=args.batch_num,
+            ref_num=args.ref_num if ref_images else 0,
+            skip=args.skip,
+            rich=args.rich,
+            think=args.think,
+            reverse_eval=args.reverse_eval,
+            frame_skip=True
+        )
+    else:
+        # Multi-GPU mode
+        from utils.multi_gpu_utils import multi_gpu_trajectory_critic
+
+        critic_list, value_list = multi_gpu_trajectory_critic(
+            model_path=args.model_path,
+            model_type=args.model_type,
+            task=args.task,
+            image_list=test_images,
+            num_gpus=args.num_gpus,
+            ref_image_list=ref_images,
+            batch_num=args.batch_num,
+            ref_num=args.ref_num if ref_images else 0,
+            skip=args.skip,
+            temperature=args.temperature,
+            top_k=args.top_k,
+            rich=args.rich,
+            think=args.think,
+            reverse_eval=args.reverse_eval,
+            frame_skip=True
+        )
 
     eval_time = time.time() - start_time
     print(f"Evaluation completed in {eval_time:.2f}s")
 
     # ========== 4. 计算质量指标 ==========
     print("\n[Step 4/4] Computing quality metrics...")
+
+    # For multi-GPU mode, we need to create a temporary critic instance for metric computation
+    if args.num_gpus > 1:
+        critic = GAC_model(tag='critic')
 
     voc = critic.compute_voc(value_list)
     negative_rate = critic.compute_negative_rate(critic_list)
@@ -248,6 +293,7 @@ def main():
             'skip': args.skip,
             'ref_num': args.ref_num,
             'device': args.device,
+            'num_gpus': args.num_gpus,
             'rich': args.rich,
             'think': args.think
         },
