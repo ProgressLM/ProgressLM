@@ -271,7 +271,7 @@ def main():
     if not args.quiet:
         print("\n[Step 4/4] Computing quality metrics...")
 
-    if args.num_gpus > 1 and 'critic' not in locals():
+    if args.num_gpus > 1:
         critic = GAC_model(tag='critic')
 
     voc = critic.compute_voc(value_list)
