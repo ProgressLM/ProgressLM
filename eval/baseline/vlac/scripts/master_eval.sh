@@ -32,7 +32,7 @@ IMAGE_ROOT_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/images"
 MODEL_PATH="/home/vcj9002/jianshu/workspace/weight/VLAC"
 
 # Directory where the final JSON results will be saved.
-OUTPUT_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/annotations/cache"
+OUTPUT_DIR="/home/vcj9002/jianshu/Results/progressLM/eval/vlac"
 
 
 # --- GPU and Passthrough Arguments ---
