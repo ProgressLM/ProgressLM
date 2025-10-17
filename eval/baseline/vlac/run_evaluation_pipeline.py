@@ -2,17 +2,30 @@ import argparse
 import json
 import os
 import glob
-import subprocess
 import tempfile
 import shutil
+import time
 from pathlib import Path
 from tqdm import tqdm
+import multiprocessing as mp
+from PIL import Image
+
+# --- Utility functions (some are moved from run_eval.py) ---
+
+def load_images_from_dir(image_paths: list[str]):
+    """Loads a list of images from their absolute paths."""
+    images = []
+    for path in image_paths:
+        try:
+            img = Image.open(path).convert('RGB')
+            images.append(img)
+        except Exception as e:
+            # This warning will be printed from the worker process
+            print(f"Warning: Failed to load {path}: {e}")
+            continue
+    return images
 
 def load_trajectories_from_file(jsonl_path, image_root_dir):
-    """
-    Loads all trajectories from a single JSONL file.
-    Each file is assumed to contain trajectories for a single task_type.
-    """
     trajectories = {}
     with open(jsonl_path, 'r') as f:
         for line in f:
@@ -21,8 +34,6 @@ def load_trajectories_from_file(jsonl_path, image_root_dir):
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
-                # This warning can be noisy, print only if not in quiet mode from a higher level
-                # For now, we keep it, as this function is not aware of a quiet flag.
                 print(f"Warning: Skipping malformed JSON line in {jsonl_path}: {line.strip()}")
                 continue
 
@@ -51,169 +62,251 @@ def load_trajectories_from_file(jsonl_path, image_root_dir):
     return trajectories
 
 def find_self_reference(trajectory_data):
-    """Returns the trajectory's own visual demo."""
     return trajectory_data["visual_demo_paths"]
 
 def find_cross_reference(current_timestamp_id, search_pool):
-    """
-    Finds a reference trajectory from a different instance within the same task type.
-    """
     current_trajectory = search_pool[current_timestamp_id]
-
     for timestamp, trajectory_data in search_pool.items():
         if timestamp == current_timestamp_id:
             continue
         if trajectory_data["task_goal"] == current_trajectory["task_goal"]:
             return trajectory_data["visual_demo_paths"]
-
     for timestamp, trajectory_data in search_pool.items():
         if timestamp == current_timestamp_id:
             continue
         if trajectory_data["total_steps"] == current_trajectory["total_steps"]:
             return trajectory_data["visual_demo_paths"]
-
     return current_trajectory["visual_demo_paths"]
 
-def prepare_temp_dir(image_paths, temp_dir_root):
-    """Creates a temporary directory and copies image files into it."""
-    temp_dir = tempfile.mkdtemp(dir=temp_dir_root)
-    for img_path in image_paths:
-        if not os.path.exists(img_path):
-            print(f"Warning: Image file not found, skipping: {img_path}")
-            continue
-        shutil.copy(img_path, temp_dir)
-    return temp_dir
+# --- Worker Process Logic ---
+
+def pipeline_worker(
+    gpu_id: int,
+    task_queue: mp.Queue,
+    result_queue: mp.Queue,
+    model_path: str,
+    model_type: str,
+    passthrough_args: dict
+):
+    """
+    A long-running worker process that initializes a model on one GPU and processes jobs.
+    """
+    device = f"cuda:{gpu_id}"
+    # Import must be inside the worker
+    from utils.model_utils import GAC_model
+
+    # 1. Initialize model once
+    try:
+        critic = GAC_model(tag='critic')
+        critic.init_model(
+            model_path=model_path,
+            model_type=model_type,
+            device_map=device
+        )
+        # Apply relevant passthrough args to the model instance
+        critic.temperature = passthrough_args.get('temperature', 0.5)
+        critic.top_k = passthrough_args.get('top_k', 1)
+        critic.set_config()
+        critic.set_system_prompt()
+    except Exception as e:
+        # If model init fails, this worker is dead. Report and exit.
+        result_queue.put({'status': 'ERROR', 'error': f"[GPU:{gpu_id}] Model initialization failed: {e}"})
+        return
+
+    # 2. Process jobs from the queue
+    while True:
+        job = task_queue.get()
+        if job is None: # Sentinel value to stop
+            break
+
+        try:
+            # Unpack job
+            main_img_paths = job['main_img_paths']
+            ref_img_paths = job['ref_img_paths']
+            task = job['task']
+            
+            # Load images
+            test_images = load_images_from_dir(main_img_paths)
+            ref_images = load_images_from_dir(ref_img_paths)
+
+            if not test_images:
+                raise ValueError("Failed to load any test images.")
+
+            # Get critic and value lists from the model
+            critic_list, value_list = critic.get_trajectory_critic(
+                task=task,
+                image_list=test_images,
+                ref_image_list=ref_images,
+                batch_num=passthrough_args.get('batch_num', 5),
+                ref_num=passthrough_args.get('ref_num', 6) if ref_images else 0,
+                skip=passthrough_args.get('skip', 1),
+                rich=passthrough_args.get('rich', False),
+                think=passthrough_args.get('think', False),
+                reverse_eval=passthrough_args.get('reverse_eval', False),
+                frame_skip=True
+            )
+
+            # Compute metrics
+            voc = critic.compute_voc(value_list)
+            negative_rate = critic.compute_negative_rate(critic_list)
+
+            # Create result structure
+            result = {
+                'status': 'SUCCESS',
+                'output_path': job['output_path'],
+                'payload': {
+                    'config': job['config'],
+                    'metrics': {
+                        'voc': float(voc),
+                        'negative_rate': float(negative_rate),
+                        'num_frames': len(test_images),
+                        'num_steps': len(critic_list),
+                    },
+                    'results': {
+                        'value_list': [float(v) for v in value_list],
+                        'critic_list': [str(c) for c in critic_list]
+                    }
+                }
+            }
+            result_queue.put(result)
+
+        except Exception as e:
+            result_queue.put({'status': 'ERROR', 'error': f"[GPU:{gpu_id}] Failed on job {job['output_path']}: {e}"})
+
+# --- Main Orchestrator Logic ---
 
 def main():
-    parser = argparse.ArgumentParser(description="Main pipeline to evaluate VLAC based on a pre-processed dataset.")
+    parser = argparse.ArgumentParser(description="Main pipeline to evaluate VLAC with a persistent process pool.")
     parser.add_argument('--processed_data_dir', type=str, required=True, help="Path to the directory with split .jsonl files.")
     parser.add_argument('--image_root_dir', type=str, required=True, help="Root directory where all trajectory image folders are stored.")
     parser.add_argument('--model_path', type=str, required=True, help="Path to the VLAC model directory.")
     parser.add_argument('--output_dir', type=str, default='./results_pipeline', help="Directory to save evaluation results.")
     parser.add_argument('--cross_trajectory_ref', action='store_true', help="Enable cross-trajectory reference finding.")
-    parser.add_argument('--gpu_ids', type=str, default="0", help="Comma-separated list of GPU IDs to use (e.g., '0,1,4').")
+    parser.add_argument('--gpu_ids', type=str, default="0", help="Comma-separated list of GPU IDs to use.")
+    
+    args, passthrough_list = parser.parse_known_args()
+    # Convert passthrough args to a dict for easier lookup in workers
+    passthrough_args = {arg.lstrip('--').replace('-', '_'): val for arg, val in zip(passthrough_list[::2], passthrough_list[1::2])}
+    # Handle action_store_true args
+    for arg in passthrough_list:
+        if arg.startswith('--'):
+            if arg not in [a+v for a,v in zip(passthrough_list[::2], passthrough_list[1::2])]:
+                 passthrough_args[arg.lstrip('--').replace('-', '_')] = True
 
-    args, passthrough_args = parser.parse_known_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
-    
-    run_temp_root = tempfile.mkdtemp(prefix="vlac_eval_")
-    print(f"Using temporary root for image data: {run_temp_root}")
 
+    # 1. Gather all jobs first
+    print("Gathering and preparing all trajectory jobs...")
+    jsonl_files = glob.glob(os.path.join(args.processed_data_dir, '*.jsonl'))
+    if not jsonl_files:
+        print(f"Error: No .jsonl files found in {args.processed_data_dir}")
+        return
+
+    all_jobs = []
+    for jsonl_file in jsonl_files:
+        trajectories_in_task = load_trajectories_from_file(jsonl_file, args.image_root_dir)
+        task_type_sanitized = os.path.basename(jsonl_file).replace('.jsonl', '')
+
+        for timestamp_id, trajectory_data in trajectories_in_task.items():
+            stages = sorted(trajectory_data["stages"], key=lambda x: x["progress"])
+            main_trajectory_paths = [s["image_path"] for s in stages]
+
+            if not main_trajectory_paths:
+                continue
+
+            if args.cross_trajectory_ref:
+                ref_trajectory_paths = find_cross_reference(timestamp_id, trajectories_in_task)
+            else:
+                ref_trajectory_paths = find_self_reference(trajectory_data)
+
+            if not ref_trajectory_paths:
+                continue
+
+            output_filename = f"{task_type_sanitized}_{timestamp_id}.json"
+            output_path = os.path.join(args.output_dir, output_filename)
+
+            job = {
+                'main_img_paths': main_trajectory_paths,
+                'ref_img_paths': ref_trajectory_paths,
+                'task': trajectory_data['task_goal'],
+                'output_path': output_path,
+                'config': { # Config for the final JSON file
+                    'model_path': args.model_path,
+                    'task': trajectory_data['task_goal'],
+                }
+            }
+            all_jobs.append(job)
+
+    print(f"Found {len(all_jobs)} total trajectories to evaluate.")
+
+    # 2. Set up multiprocessing context, queues, and workers
     try:
-        jsonl_files = glob.glob(os.path.join(args.processed_data_dir, '*.jsonl'))
-        if not jsonl_files:
-            print(f"Error: No .jsonl files found in {args.processed_data_dir}")
-            return
+        mp.set_start_method('spawn', force=True)
+    except RuntimeError:
+        pass # Start method can only be set once
 
-        script_dir = Path(__file__).parent
-        vlac_eval_script = script_dir / 'run_eval.py'
+    task_queue = mp.Queue()
+    result_queue = mp.Queue()
+    gpu_ids = [int(gid) for gid in args.gpu_ids.split(',')]
 
-        # First, count total number of trajectories for tqdm
-        print("Pre-calculating total number of trajectories...")
-        total_trajectories = 0
-        for jsonl_file in jsonl_files:
-            # A bit inefficient to load files twice, but necessary for a clean progress bar
-            trajectories = load_trajectories_from_file(jsonl_file, args.image_root_dir)
-            total_trajectories += len(trajectories)
-        print(f"Found {total_trajectories} total trajectories to evaluate.")
+    workers = []
+    for gpu_id in gpu_ids:
+        worker = mp.Process(
+            target=pipeline_worker,
+            args=(gpu_id, task_queue, result_queue, args.model_path, 'internvl2', passthrough_args)
+        )
+        worker.start()
+        workers.append(worker)
 
-        # Initialize trackers for metrics
-        error_count = 0
-        voc_scores = []
-        neg_rates = []
+    # 3. Distribute jobs
+    for job in all_jobs:
+        task_queue.put(job)
 
-        with tqdm(total=total_trajectories, desc="Overall Progress", unit="traj") as pbar:
-            for jsonl_file in jsonl_files:
-                trajectories_in_task = load_trajectories_from_file(jsonl_file, args.image_root_dir)
+    # 4. Add sentinel values to stop workers
+    for _ in gpu_ids:
+        task_queue.put(None)
+
+    # 5. Collect results and update progress bar
+    error_count = 0
+    voc_scores = []
+    neg_rates = []
+
+    with tqdm(total=len(all_jobs), desc="Overall Progress", unit="traj") as pbar:
+        for _ in range(len(all_jobs)):
+            result = result_queue.get()
+
+            if result['status'] == 'SUCCESS':
+                # Save the successful result payload to its file
+                with open(result['output_path'], 'w') as f:
+                    json.dump(result['payload'], f, indent=2)
                 
-                for timestamp_id, trajectory_data in trajectories_in_task.items():
-                    # Update postfix at the beginning of the loop for immediate feedback
-                    avg_voc = sum(voc_scores) / len(voc_scores) if voc_scores else 0
-                    avg_neg_rate = sum(neg_rates) / len(neg_rates) if neg_rates else 0
-                    pbar.set_postfix(avg_VOC=f'{avg_voc:.3f}', avg_NegRate=f'{avg_neg_rate:.3f}', errors=error_count, refresh=True)
+                # Update metrics
+                voc = result['payload']['metrics']['voc']
+                neg_rate = result['payload']['metrics']['negative_rate']
+                voc_scores.append(voc)
+                neg_rates.append(neg_rate)
+            else:
+                error_count += 1
+                pbar.write(result['error'])
 
-                    stages = sorted(trajectory_data["stages"], key=lambda x: x["progress"])
-                    main_trajectory_paths = [s["image_path"] for s in stages]
-                    
-                    if not main_trajectory_paths:
-                        error_count += 1
-                        pbar.update(1)
-                        continue
+            # Update progress bar postfix
+            avg_voc = sum(voc_scores) / len(voc_scores) if voc_scores else 0
+            avg_neg_rate = sum(neg_rates) / len(neg_rates) if neg_rates else 0
+            pbar.set_postfix(avg_VOC=f'{avg_voc:.3f}', avg_NegRate=f'{avg_neg_rate:.3f}', errors=error_count, refresh=True)
+            pbar.update(1)
 
-                    if args.cross_trajectory_ref:
-                        ref_trajectory_paths = find_cross_reference(timestamp_id, trajectories_in_task)
-                    else:
-                        ref_trajectory_paths = find_self_reference(trajectory_data)
+    # 6. Cleanup
+    for worker in workers:
+        worker.join()
 
-                    if not ref_trajectory_paths:
-                        error_count += 1
-                        pbar.update(1)
-                        continue
-
-                    main_dir = prepare_temp_dir(main_trajectory_paths, run_temp_root)
-                    ref_dir = prepare_temp_dir(ref_trajectory_paths, run_temp_root)
-                    
-                    task_type_sanitized = os.path.basename(jsonl_file).replace('.jsonl', '')
-                    output_filename = f"{task_type_sanitized}_{timestamp_id}.json"
-                    output_path = os.path.join(args.output_dir, output_filename)
-
-                    num_gpus = len(args.gpu_ids.split(','))
-                    command = [
-                        'python', str(vlac_eval_script),
-                        '--model_path', args.model_path,
-                        '--data_dir', main_dir,
-                        '--ref_dir', ref_dir,
-                        '--task', trajectory_data['task_goal'],
-                        '--output_dir', args.output_dir,
-                        '--output_name', output_filename,
-                        '--gpu_ids', args.gpu_ids,
-                        '--num_gpus', str(num_gpus),
-                        '--quiet' # Suppress output from the child script
-                    ] + passthrough_args
-
-                    try:
-                        # We still pass --quiet, but capture output here to debug if something goes wrong.
-                        process = subprocess.run(command, check=True, capture_output=True, text=True)
-                        
-                        # Read results from the generated JSON to update metrics
-                        with open(output_path, 'r') as f:
-                            results = json.load(f)
-                        
-                        voc = results['metrics']['voc']
-                        neg_rate = results['metrics']['negative_rate']
-                        voc_scores.append(voc)
-                        neg_rates.append(neg_rate)
-
-                    except subprocess.CalledProcessError as e:
-                        error_count += 1
-                        # Print the error to the main console for debugging
-                        pbar.write(f"\n--- ERROR processing {timestamp_id} ---")
-                        pbar.write(f"  Return Code: {e.returncode}")
-                        if e.stdout:
-                            pbar.write(f"  Stdout: {e.stdout.strip()}")
-                        if e.stderr:
-                            pbar.write(f"  Stderr: {e.stderr.strip()}")
-                        pbar.write("--- END ERROR ---")
-                    except (FileNotFoundError, json.JSONDecodeError) as e:
-                        error_count += 1
-                        pbar.write(f"\n--- ERROR processing {timestamp_id} (Post-processing failed) ---")
-                        pbar.write(f"  Error: {e}")
-                        pbar.write("--- END ERROR ---")
-                    
-                    pbar.update(1)
-
-    finally:
-        print(f"\nCleaning up temporary directory: {run_temp_root}")
-        shutil.rmtree(run_temp_root)
-    
     # Final summary
     print("\n" + "="*80)
     print("Evaluation Summary")
     print("="*80)
     final_avg_voc = sum(voc_scores) / len(voc_scores) if voc_scores else 0
     final_avg_neg_rate = sum(neg_rates) / len(neg_rates) if neg_rates else 0
-    print(f"Total Trajectories Evaluated: {total_trajectories}")
+    print(f"Total Trajectories Evaluated: {len(all_jobs)}")
     print(f"Successful Evaluations: {len(voc_scores)}")
     print(f"Failed Evaluations (Errors): {error_count}")
     print(f"\nFinal Average VOC: {final_avg_voc:.4f}")
