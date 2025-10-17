@@ -543,7 +543,7 @@ class GAC_model():
         done_list = [float(one) if float(one) > threshold else 0.0 for one in done_list]
         return done_list
 
-    def get_trajectory_critic(self,task:str,image_list:List[Image.Image],ref_image_list:List[Image.Image]=None,batch_num:int=20,ref_num=9,think=False,skip=1,rich=False,reverse_eval=False,frame_skip=True,addition_scale=1,bias=0,related_critic=False,positive_clip=0,negative_clip=0,value_simple=True, show_progress: bool = True):
+    def get_trajectory_critic(self,task:str,image_list:List[Image.Image],ref_image_list:List[Image.Image]=None,batch_num:int=20,ref_num=9,think=False,skip=1,rich=False,reverse_eval=False,frame_skip=True,addition_scale=1,bias=0,related_critic=False,positive_clip=0,negative_clip=0,value_simple=True, show_progress: bool = True, verbose: bool = False):
         """
         输入一条trajectory的所有图片,输出每张图片的critic和processing value
         可以给一条参考轨迹
@@ -580,8 +580,9 @@ class GAC_model():
                 infer_requests=self.get_infer_requests(prompt=batch_prompt,images=batch_image)
                 response_list,infer_time=self.chat(infer_requests)
                 answers_list,complete_requests_list=self.results_format(response_list,infer_requests,rich=rich)
-                print(f'infer_time:{infer_time}s')
-                print(f'answers_list:{answers_list}')
+                if verbose:
+                    print(f'infer_time:{infer_time}s')
+                    print(f'answers_list:{answers_list}')
                 critic_list.extend(answers_list)
                 batch_prompt=[]
                 batch_image=[]

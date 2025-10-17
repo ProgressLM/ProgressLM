@@ -144,7 +144,8 @@ def pipeline_worker(
                 think=passthrough_args.get('think', False),
                 reverse_eval=passthrough_args.get('reverse_eval', False),
                 frame_skip=True,
-                show_progress=False # Disable worker tqdm bars
+                show_progress=False, # Disable worker tqdm bars
+                verbose=False # Disable worker print statements
             )
 
             # Compute metrics
