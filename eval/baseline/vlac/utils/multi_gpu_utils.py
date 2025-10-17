@@ -49,7 +49,7 @@ def _worker_process(
     Worker process function that runs on a single GPU.
 
     Args:
-        gpu_id: GPU device ID (0, 1, 2, ...)
+        gpu_id: GPU device ID (0, 1, 2, ...) to be used.
         model_path: Path to VLAC model
         model_type: Model type (e.g., 'internvl2')
         task: Task description
@@ -72,7 +72,7 @@ def _worker_process(
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         from model_utils import GAC_model
 
-        # Set device for this worker
+        # Set device for this worker using the specific gpu_id
         device = f"cuda:{gpu_id}"
         print(f"[GPU {gpu_id}] Starting worker on {device}")
         print(f"[GPU {gpu_id}] Processing {len(image_indices)} image pairs")
@@ -175,7 +175,7 @@ def multi_gpu_trajectory_critic(
     model_type: str,
     task: str,
     image_list: List[Image.Image],
-    num_gpus: int,
+    gpu_ids: List[int],
     ref_image_list: Optional[List[Image.Image]] = None,
     batch_num: int = 5,
     ref_num: int = 6,
@@ -198,7 +198,7 @@ def multi_gpu_trajectory_critic(
         model_type: Model type (e.g., 'internvl2')
         task: Task description
         image_list: List of PIL images to evaluate
-        num_gpus: Number of GPUs to use
+        gpu_ids: A list of specific GPU IDs to use for parallel processing.
         ref_image_list: Optional reference trajectory images
         batch_num: Batch size for inference on each GPU
         ref_num: Number of reference images to sample
@@ -214,19 +214,21 @@ def multi_gpu_trajectory_critic(
         critic_list: List of critic scores
         value_list: List of progress values (0-100)
     """
+    num_gpus = len(gpu_ids)
 
     # Validate num_gpus
     available_gpus = torch.cuda.device_count()
-    if num_gpus > available_gpus:
-        print(f"Warning: Requested {num_gpus} GPUs but only {available_gpus} available. Using {available_gpus} GPUs.")
-        num_gpus = available_gpus
+    for gpu_id in gpu_ids:
+        if gpu_id >= available_gpus:
+            raise ValueError(f"Requested GPU ID {gpu_id} is not available. Only {available_gpus} GPUs found (IDs 0 to {available_gpus-1}).")
 
     if num_gpus < 1:
-        raise ValueError(f"num_gpus must be >= 1, got {num_gpus}")
+        raise ValueError(f"gpu_ids list cannot be empty.")
 
     print(f"\n{'='*80}")
     print(f"Multi-GPU Data Parallel Inference")
     print(f"{'='*80}")
+    print(f"Using GPU IDs: {gpu_ids}")
     print(f"Number of GPUs: {num_gpus}")
     print(f"Total images: {len(image_list)}")
     print(f"Skip: {skip}")
@@ -250,28 +252,23 @@ def multi_gpu_trajectory_critic(
     try:
         # Save images to temp directory
         print("Preparing shared image data...")
-        image_indices = _save_images_to_temp(image_list, temp_dir, "image")
+        _save_images_to_temp(image_list, temp_dir, "image")
 
         ref_image_indices = None
         if ref_image_list is not None:
             ref_image_indices = _save_images_to_temp(ref_image_list, temp_dir, "ref_image")
 
         # Split work across GPUs
-        # We need to ensure each GPU gets a contiguous chunk of the original image_list
-        # because critic evaluation needs sequential context
-
-        # Strategy: Split the original image list into num_gpus chunks
-        # Each chunk will process its own segment independently
         images_per_gpu = len(image_list) // num_gpus
         gpu_image_ranges = []
 
-        for gpu_id in range(num_gpus):
-            start_idx = gpu_id * images_per_gpu
-            if gpu_id == num_gpus - 1:
+        for i in range(num_gpus):
+            start_idx = i * images_per_gpu
+            if i == num_gpus - 1:
                 # Last GPU takes remaining images
                 end_idx = len(image_list)
             else:
-                end_idx = (gpu_id + 1) * images_per_gpu
+                end_idx = (i + 1) * images_per_gpu
                 # Add overlap for context (need previous frame for comparison)
                 end_idx = min(end_idx + skip, len(image_list))
 
@@ -283,14 +280,14 @@ def multi_gpu_trajectory_critic(
 
         # Start worker processes
         processes = []
-        for gpu_id in range(num_gpus):
-            start_idx, end_idx = gpu_image_ranges[gpu_id]
+        for i, gpu_id in enumerate(gpu_ids):
+            start_idx, end_idx = gpu_image_ranges[i]
             worker_image_indices = list(range(start_idx, end_idx))
 
             p = ctx.Process(
                 target=_worker_process,
                 args=(
-                    gpu_id,
+                    gpu_id, # Pass the actual GPU ID
                     model_path,
                     model_type,
                     task,
@@ -337,16 +334,22 @@ def multi_gpu_trajectory_critic(
         # Merge results in order
         print("\nMerging results from all GPUs...")
 
-        # Sort results by GPU ID to maintain order
-        results.sort(key=lambda x: x['gpu_id'])
+        # Sort results by the original GPU ID order to maintain sequence
+        results.sort(key=lambda x: gpu_ids.index(x['gpu_id']))
 
         # Concatenate critic and value lists
         merged_critic_list = []
-        merged_value_list = []
+        merged_value__list = []
 
         for result in results:
             merged_critic_list.extend(result['critic_list'])
-            merged_value_list.extend(result['value_list'])
+            # The value list from workers is partial, it needs to be recomputed globally
+            # We only use the critic list which is the direct model output
+
+        # Recompute the value list globally from the merged critic list
+        from model_utils import GAC_model
+        temp_critic_model = GAC_model()
+        merged_value_list = temp_critic_model.critic_to_value_simple(merged_critic_list)
 
         print(f"Merged {len(merged_critic_list)} critic scores from {num_gpus} GPUs")
         print(f"Multi-GPU inference completed successfully!\n")

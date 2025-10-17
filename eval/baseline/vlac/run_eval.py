@@ -105,8 +105,8 @@ def parse_args():
                         help='Enable reverse evaluation (for VROC)')
 
     # 可选参数 - 多GPU配置
-    parser.add_argument('--num_gpus', type=int, default=1,
-                        help='Number of GPUs to use for data parallel inference (default: 1)')
+    parser.add_argument('--gpu_ids', type=str, default='0',
+                        help="Comma-separated list of GPU IDs to use (e.g., '0,1,2,3').")
 
     # 可选参数 - 输入输出
     parser.add_argument('--image_pattern', type=str, default='*.jpg,*.png',
