@@ -160,6 +160,7 @@ def main():
                 # 4. Execute run_eval.py
                 output_filename = f"{task_type.replace('/', '_')}_{timestamp_id}.json"
                 
+                num_gpus = len(args.gpu_ids.split(','))
                 command = [
                     'python', str(vlac_eval_script),
                     '--model_path', args.model_path,
@@ -168,7 +169,8 @@ def main():
                     '--task', trajectory_data['task_goal'],
                     '--output_dir', args.output_dir,
                     '--output_name', output_filename,
-                    '--gpu_ids', args.gpu_ids
+                    '--gpu_ids', args.gpu_ids,
+                    '--num_gpus', str(num_gpus)
                 ] + passthrough_args
 
                 print(f"Executing VLAC evaluation for {timestamp_id}...")
