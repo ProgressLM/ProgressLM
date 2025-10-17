@@ -143,7 +143,8 @@ def pipeline_worker(
                 rich=passthrough_args.get('rich', False),
                 think=passthrough_args.get('think', False),
                 reverse_eval=passthrough_args.get('reverse_eval', False),
-                frame_skip=True
+                frame_skip=True,
+                show_progress=False # Disable worker tqdm bars
             )
 
             # Compute metrics
@@ -271,15 +272,16 @@ def main():
     error_count = 0
     voc_scores = []
     neg_rates = []
+    all_results_agg = {} # Dictionary to aggregate all results
 
     with tqdm(total=len(all_jobs), desc="Overall Progress", unit="traj") as pbar:
         for _ in range(len(all_jobs)):
             result = result_queue.get()
 
             if result['status'] == 'SUCCESS':
-                # Save the successful result payload to its file
-                with open(result['output_path'], 'w') as f:
-                    json.dump(result['payload'], f, indent=2)
+                # Get a unique key for the trajectory
+                trajectory_key = os.path.basename(result['output_path']).replace('.json', '')
+                all_results_agg[trajectory_key] = result['payload']
                 
                 # Update metrics
                 voc = result['payload']['metrics']['voc']
@@ -296,9 +298,16 @@ def main():
             pbar.set_postfix(avg_VOC=f'{avg_voc:.3f}', avg_NegRate=f'{avg_neg_rate:.3f}', errors=error_count, refresh=True)
             pbar.update(1)
 
-    # 6. Cleanup
+    # 6. Cleanup and Final Write
     for worker in workers:
         worker.join()
+
+    # Write aggregated results to a single JSON file
+    final_output_path = os.path.join(args.output_dir, 'evaluation_results_all.json')
+    print(f"\nAggregating results into a single file...")
+    with open(final_output_path, 'w') as f:
+        json.dump(all_results_agg, f, indent=2)
+    print(f"All results saved to: {final_output_path}")
 
     # Final summary
     print("\n" + "="*80)

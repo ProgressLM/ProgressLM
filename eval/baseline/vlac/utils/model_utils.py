@@ -543,7 +543,7 @@ class GAC_model():
         done_list = [float(one) if float(one) > threshold else 0.0 for one in done_list]
         return done_list
 
-    def get_trajectory_critic(self,task:str,image_list:List[Image.Image],ref_image_list:List[Image.Image]=None,batch_num:int=20,ref_num=9,think=False,skip=1,rich=False,reverse_eval=False,frame_skip=True,addition_scale=1,bias=0,related_critic=False,positive_clip=0,negative_clip=0,value_simple=True):
+    def get_trajectory_critic(self,task:str,image_list:List[Image.Image],ref_image_list:List[Image.Image]=None,batch_num:int=20,ref_num=9,think=False,skip=1,rich=False,reverse_eval=False,frame_skip=True,addition_scale=1,bias=0,related_critic=False,positive_clip=0,negative_clip=0,value_simple=True, show_progress: bool = True):
         """
         输入一条trajectory的所有图片,输出每张图片的critic和processing value
         可以给一条参考轨迹
@@ -563,7 +563,7 @@ class GAC_model():
             select_idx=range(skip,len(image_list),skip)
         else:
             select_idx=range(skip,len(image_list))
-        for i in tqdm.tqdm(select_idx,desc='critic processing'):
+        for i in tqdm.tqdm(select_idx,desc='critic processing', disable=not show_progress):
             one_prompt=self.get_score_prompt(task=task,trajectory_len=ref_num,think=think)
             batch_prompt.append(one_prompt)
             if ref_image_list is not None:
