@@ -10,7 +10,7 @@ set -e  # 遇到错误立即退出
 # ===========================
 
 # OpenAI API密钥 - 可以从环境变量读取或直接设置
-API_KEY="${OPENAI_API_KEY:-}"
+API_KEY="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"
 
 # 默认路径配置
 DEFAULT_INPUT="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/train/sft/h5_tienkung_xsens_sft.jsonl"
@@ -25,7 +25,7 @@ DEFAULT_RESUME=true    # 默认不启用断点续传，如需启用设置为: DE
 DEFAULT_NO_RETRY=false  # 默认重试失败样本，如不需要重试设置为: DEFAULT_NO_RETRY=true
 
 # Python脚本名称
-PROCESSOR_SCRIPT="gpt5_processor.py"
+PROCESSOR_SCRIPT="/home/vcj9002/jianshu/workspace/code/ProgressLM/cold_start/cot_gen/gpt5_processor.py"
 
 # 颜色定义
 RED='\033[0;31m'
