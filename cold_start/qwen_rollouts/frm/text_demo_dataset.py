@@ -56,10 +56,15 @@ def load_text_demo_dataset(
         "data_source": "h5_tienkung_xsens_1rgb"
     }
 
+    Image Path Construction:
+        - If image_root is provided: IMAGE_ROOT/{id}/{stage_to_estimate}
+        - Example: /data/CoMM/comm/h5_tienkung_xsens_1rgb/battery_insertion/camera_top_0474.jpg
+        - If absolute path in data: use as-is (no modification)
+
     Args:
         dataset_path: Path to the JSONL dataset file
         num_inferences: Number of times to replicate each sample (default: 4)
-        image_root: Optional root directory to prepend to relative image paths
+        image_root: Root directory for image path construction (IMAGE_ROOT/{id}/{stage_to_estimate})
 
     Returns:
         List of expanded dataset items (length = original_length * num_inferences)
@@ -135,9 +140,10 @@ def load_text_demo_dataset(
                     print(f"Warning: Line {line_num} has invalid progress_score ({item.get('progress_score')}): {e}, skipping")
                     continue
 
-                # Prepend image_root to image path if provided
+                # Construct image path: IMAGE_ROOT / id / stage_to_estimate
+                # If image_root is provided and path is not absolute, build path as: image_root/id/stage_to_estimate
                 if image_root and not os.path.isabs(item['stage_to_estimate']):
-                    item['stage_to_estimate'] = os.path.join(image_root, item['stage_to_estimate'])
+                    item['stage_to_estimate'] = os.path.join(image_root, item['id'], item['stage_to_estimate'])
 
                 raw_data.append(item)
 

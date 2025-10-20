@@ -26,7 +26,9 @@ MODEL_PATH="/home/runsheng/personal_3/qiancx/Sources/models/Qwen2.5-VL-3B-Instru
 
 # Dataset configuration
 DATASET_PATH="/home/runsheng/personal_3/qiancx/Process/Data/FRM/annotations/comm_text_demo_1k_refine.jsonl"
-IMAGE_ROOT="/home/runsheng/personal_3/qiancx/Process/Data/CoMM/comm"  # Optional: root directory for relative image paths
+# Image path construction: IMAGE_ROOT/{id}/{stage_to_estimate}
+# Example: /data/CoMM/comm/h5_tienkung_xsens_1rgb/battery_insertion/camera_top_0474.jpg
+IMAGE_ROOT="/home/runsheng/personal_3/qiancx/Process/Data/CoMM/comm"
 
 # Output configuration
 OUTPUT_DIR="/home/runsheng/personal_3/qiancx/Sources/results/text_demo"
