@@ -120,7 +120,7 @@ class Qwen2VLChat(Qwen2VLPromptMixin, BaseModel):
         # If only one process and GPU memory is less than 40GB
         if '72b' in self.model_path.lower() or '32b' in self.model_path.lower():
             self.model = MODEL_CLS.from_pretrained(
-                model_path, torch_dtype='auto', device_map=split_model(), attn_implementation='flash_attention_2'
+                model_path, torch_dtype='auto', device_map='auto', attn_implementation='flash_attention_2'
             )
             self.model.eval()
         elif auto_split_flag():
