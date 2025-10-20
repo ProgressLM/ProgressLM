@@ -22,29 +22,28 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/home/runsheng/personal_3/qiancx/Sources/models/Qwen2.5-VL-3B-Instruct"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration
-DATASET_PATH="/home/runsheng/personal_3/qiancx/Process/Data/FRM/annotations/comm_text_demo_1k_refine.jsonl"
-# Image path construction: IMAGE_ROOT/{id}/{stage_to_estimate}
-# Example: /data/CoMM/comm/h5_tienkung_xsens_1rgb/battery_insertion/camera_top_0474.jpg
-IMAGE_ROOT="/home/runsheng/personal_3/qiancx/Process/Data/CoMM/comm"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+
+IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/home/runsheng/personal_3/qiancx/Sources/results/text_demo"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/text_demo_results_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/text_demo_${TIMESTAMP}.log"
 
 # GPU configuration
-GPU_IDS="0,1,2,3,4,5,6,7"  # Comma-separated GPU IDs to use
-BATCH_SIZE=16  # Batch size per GPU (can be higher since only 1 image per sample)
+GPU_IDS="0,1"  # Comma-separated GPU IDs to use
+BATCH_SIZE=2  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
-NUM_INFERENCES=4  # Number of inferences per sample (data expansion factor)
+NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.2  # Higher temperature for diversity across multiple inferences
+TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
 MAX_NEW_TOKENS=40000  # Increased from 30000 to 40000 for longer CoT reasoning chains
@@ -52,7 +51,7 @@ MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
 # Processing parameters
-LIMIT=-1  # Limit samples to process after expansion (-1 for all)
+LIMIT=16  # Limit samples to process after expansion (-1 for all)
 
 # Misc
 VERBOSE=false  # Set to true for detailed output
