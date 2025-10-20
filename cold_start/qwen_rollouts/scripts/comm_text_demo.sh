@@ -5,6 +5,18 @@
 #
 # This script runs progress estimation on Text Demo dataset using
 # Qwen2-VL model with distributed GPU support.
+#
+# Expected JSONL format (NEW VERSION):
+# {
+#   "id": "h5_tienkung_xsens_1rgb/battery_insertion_with_pullout/2024-09-19-10-35-18",
+#   "task_goal": "inserting a battery into a power bank and then removing it",
+#   "text_demo": ["reach for the power bank", "insert the battery into the power bank", "remove the battery from the power bank"],
+#   "total_steps": 3,
+#   "stage_to_estimate": "camera_top_0474.jpg",
+#   "closest_idx": 1,  # 1-based index (1 means first text_demo)
+#   "progress_score": "33%",
+#   "data_source": "h5_tienkung_xsens_1rgb"
+# }
 #####################################################################
 
 # ======================== Configuration ========================
@@ -33,7 +45,7 @@ NUM_INFERENCES=4  # Number of inferences per sample (data expansion factor)
 TEMPERATURE=0.2  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
-MAX_NEW_TOKENS=30000  # Enough for <ref_think>, <ref>, <score_think>, <score> tags
+MAX_NEW_TOKENS=40000  # Increased from 30000 to 40000 for longer CoT reasoning chains
 MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
