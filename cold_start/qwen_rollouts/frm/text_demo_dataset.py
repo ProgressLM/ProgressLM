@@ -1,6 +1,39 @@
 import os
 import json
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Union
+
+
+def parse_percentage(score_str: Union[str, int, float]) -> float:
+    """
+    Convert percentage string or numeric value to 0.0-1.0 range.
+
+    Examples:
+        "33%" -> 0.33
+        "100%" -> 1.0
+        0.33 -> 0.33
+        33 -> 0.33 (assumed to be percentage)
+
+    Args:
+        score_str: Progress score as string (with/without %), int, or float
+
+    Returns:
+        Float value in [0.0, 1.0] range
+    """
+    if isinstance(score_str, (int, float)):
+        # If numeric value > 1.0, assume it's percentage form (e.g., 33 means 33%)
+        if score_str > 1.0:
+            return score_str / 100.0
+        return float(score_str)
+
+    # Handle string format
+    score_str = str(score_str).strip()
+    if score_str.endswith('%'):
+        return float(score_str[:-1]) / 100.0
+    else:
+        val = float(score_str)
+        if val > 1.0:
+            return val / 100.0
+        return val
 
 
 def load_text_demo_dataset(
@@ -11,15 +44,16 @@ def load_text_demo_dataset(
     """
     Load Text Demo dataset from JSONL file and expand each sample N times.
 
-    Expected format for each line:
+    Expected format for each line (NEW VERSION):
     {
-        "id": "WikiHow_40810",
-        "text_demo": "Back Up Messages...\n\nStep 1: ...\nBy now, our progress is 0.12.\n...",
-        "stage_to_estimate": "images/comm/WikiHow/WikiHow_40810/231678.jpg",
-        "progress_score": 0.25,
-        "total_steps": "8",
-        "closest_demo_idx": "2",
-        "data_source": "WikiHow"
+        "id": "h5_tienkung_xsens_1rgb/battery_insertion_with_pullout/2024-09-19-10-35-18",
+        "task_goal": "inserting a battery into a power bank and then removing it",
+        "text_demo": ["reach for the power bank", "insert the battery into the power bank", "remove the battery from the power bank"],
+        "total_steps": 3,
+        "stage_to_estimate": "camera_top_0474.jpg",
+        "closest_idx": 1,  // 1-based index (1 means first text_demo)
+        "progress_score": "33%",
+        "data_source": "h5_tienkung_xsens_1rgb"
     }
 
     Args:
@@ -44,15 +78,43 @@ def load_text_demo_dataset(
                 item = json.loads(line)
 
                 # Validate required fields
-                required_fields = ['id', 'text_demo', 'stage_to_estimate', 'progress_score']
+                required_fields = ['id', 'text_demo', 'stage_to_estimate', 'progress_score',
+                                   'task_goal', 'closest_idx', 'total_steps']
                 missing_fields = [f for f in required_fields if f not in item]
                 if missing_fields:
                     print(f"Warning: Line {line_num} missing fields {missing_fields}, skipping")
                     continue
 
-                # Validate text_demo is a non-empty string
-                if not isinstance(item['text_demo'], str) or len(item['text_demo'].strip()) == 0:
-                    print(f"Warning: Line {line_num} has invalid text_demo (must be non-empty string), skipping")
+                # Validate text_demo is a non-empty list
+                if not isinstance(item['text_demo'], list) or len(item['text_demo']) == 0:
+                    print(f"Warning: Line {line_num} has invalid text_demo (must be non-empty list), skipping")
+                    continue
+
+                # Validate task_goal is a non-empty string
+                if not isinstance(item['task_goal'], str) or len(item['task_goal'].strip()) == 0:
+                    print(f"Warning: Line {line_num} has invalid task_goal (must be non-empty string), skipping")
+                    continue
+
+                # Validate total_steps
+                try:
+                    total_steps = int(item['total_steps'])
+                    if total_steps != len(item['text_demo']):
+                        print(f"Warning: Line {line_num} total_steps ({total_steps}) doesn't match text_demo length ({len(item['text_demo'])}), skipping")
+                        continue
+                    item['total_steps'] = total_steps
+                except (ValueError, TypeError):
+                    print(f"Warning: Line {line_num} has invalid total_steps (must be integer), skipping")
+                    continue
+
+                # Validate closest_idx (1-based, must be in range [1, len(text_demo)])
+                try:
+                    closest_idx = int(item['closest_idx'])
+                    if not (1 <= closest_idx <= len(item['text_demo'])):
+                        print(f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), must be 1-{len(item['text_demo'])}, skipping")
+                        continue
+                    item['closest_idx'] = closest_idx
+                except (ValueError, TypeError):
+                    print(f"Warning: Line {line_num} has invalid closest_idx (must be integer), skipping")
                     continue
 
                 # Normalize stage_to_estimate to string format
@@ -66,11 +128,11 @@ def load_text_demo_dataset(
 
                 item['stage_to_estimate'] = stage_img
 
-                # Validate progress_score is numeric
+                # Validate and convert progress_score (supports "33%" or 0.33)
                 try:
-                    item['progress_score'] = float(item['progress_score'])
-                except (ValueError, TypeError):
-                    print(f"Warning: Line {line_num} has invalid progress_score (must be numeric), skipping")
+                    item['progress_score'] = parse_percentage(item['progress_score'])
+                except (ValueError, TypeError) as e:
+                    print(f"Warning: Line {line_num} has invalid progress_score ({item.get('progress_score')}): {e}, skipping")
                     continue
 
                 # Prepend image_root to image path if provided

@@ -26,9 +26,9 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
 
     Expected format:
     <ref_think>reasoning...</ref_think>
-    <ref>0.2</ref>
+    <ref>2</ref>  (now expects 1-based integer index)
     <score_think>reasoning...</score_think>
-    <score>0.25</score>
+    <score>33%</score>  (supports both "33%" and "0.33" formats)
 
     Args:
         response: Model output string
@@ -37,9 +37,9 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
         Dictionary with parsed fields:
         {
             'ref_think': str,
-            'ref': str,
+            'ref': str or int (1-based step number),
             'score_think': str,
-            'score': float or None,
+            'score': float or None (in 0.0-1.0 range),
             'parse_error': bool
         }
     """
@@ -57,22 +57,39 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
         if ref_think_match:
             result['ref_think'] = ref_think_match.group(1).strip()
 
-        # Extract ref
+        # Extract ref (now expects integer 1-based index)
         ref_match = re.search(r'<ref>(.*?)</ref>', response, re.DOTALL)
         if ref_match:
-            result['ref'] = ref_match.group(1).strip()
+            ref_str = ref_match.group(1).strip()
+            try:
+                # Extract just the number (handle "No. 2", "2", "step 2", etc.)
+                ref_num = re.search(r'\d+', ref_str)
+                if ref_num:
+                    result['ref'] = int(ref_num.group())
+                else:
+                    result['ref'] = ref_str  # Keep original if no number found
+            except (ValueError, AttributeError):
+                result['ref'] = ref_str
 
         # Extract score_think
         score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
         if score_think_match:
             result['score_think'] = score_think_match.group(1).strip()
 
-        # Extract score (most important)
+        # Extract score (supports both "33%" and "0.33")
         score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
         if score_match:
             score_str = score_match.group(1).strip()
             try:
-                score_value = float(score_str)
+                # Remove % sign if present
+                if score_str.endswith('%'):
+                    score_value = float(score_str[:-1]) / 100.0
+                else:
+                    score_value = float(score_str)
+                    # If > 1.0, assume it's percentage without % sign
+                    if score_value > 1.0:
+                        score_value = score_value / 100.0
+
                 # Clamp to [0, 1]
                 result['score'] = max(0.0, min(1.0, score_value))
             except ValueError:
