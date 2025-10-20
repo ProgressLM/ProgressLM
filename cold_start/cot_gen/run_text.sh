@@ -10,11 +10,11 @@ set -e  # 遇到错误立即退出
 # ===========================
 
 # OpenAI API密钥 - 可以从环境变量读取或直接设置
-API_KEY="${OPENAI_API_KEY:-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}"
+API_KEY="${OPENAI_API_KEY:-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}"
 
 # 默认路径配置 - 根据您的实际路径修改
-DEFAULT_INPUT="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/train/sft/text_demo_sft.jsonl"
-DEFAULT_OUTPUT="/home/vcj9002/jianshu/Results/progressLM/text-demo/text_demo_output_$(date +%Y%m%d_%H%M%S).jsonl"
+DEFAULT_INPUT="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+DEFAULT_OUTPUT="/home/vcj9002/jianshu/Results/progressLM/cold_text/text_demo_$(date +%Y%m%d_%H%M%S).jsonl"
 DEFAULT_IMAGE_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/images"
 DEFAULT_MODEL="gpt-5"
 DEFAULT_WORKERS=3
@@ -25,7 +25,7 @@ DEFAULT_RESUME=true    # 默认不启用断点续传，如需启用设置为: DE
 DEFAULT_NO_RETRY=false  # 默认重试失败样本，如不需要重试设置为: DEFAULT_NO_RETRY=true
 
 # Python脚本名称 - 修改为text_demo_processor.py的实际路径
-PROCESSOR_SCRIPT="/Users/cxqian/Codes/ProgressLM/cold_start/cot_gen/text_gpt_processor.py"
+PROCESSOR_SCRIPT="/home/vcj9002/jianshu/workspace/code/ProgressLM/cold_start/cot_gen/text_gpt_processor.py"
 
 # 颜色定义
 RED='\033[0;31m'
