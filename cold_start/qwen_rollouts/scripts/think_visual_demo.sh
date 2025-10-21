@@ -5,6 +5,19 @@
 #
 # This script runs progress estimation on Visual Demo dataset using
 # Qwen2-VL model with distributed GPU support.
+#
+# Expected JSONL format (NEW VERSION):
+# {
+#   "id": "h5_tienkung_xsens_1rgb/brick_piled_then_press_thrice/2024-10-17-10-53-16",
+#   "task_goal": "Put the blue block next to the purple block in front.",
+#   "visual_demo": ["camera_top_0000.jpg", "camera_top_0041.jpg", "camera_top_0068.jpg", "camera_top_0191.jpg", "camera_top_0394.jpg"],
+#   "total_steps": "4",
+#   "stage_to_estimate": ["camera_top_0013.jpg"],
+#   "closest_idx": "1",
+#   "delta": "+7%",
+#   "progress_score": "8%",
+#   "data_source": "robomind_h5_tienkung_xsens_1rgb"
+# }
 #####################################################################
 
 # ======================== Configuration ========================
@@ -27,14 +40,13 @@ GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
 BATCH_SIZE=4  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
-NUM_INFERENCES=4  # Number of inferences per sample (data expansion factor)
-SAVE_INTERVAL=1000  # Save intermediate results every N samples
+NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.2  # Higher temperature for diversity across multiple inferences
+TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
-MAX_NEW_TOKENS=5120  # Enough for <ref_think>, <ref>, <score_think>, <score> tags
+MAX_NEW_TOKENS=40000  # Increased from 5120 to 40000 for longer CoT reasoning chains
 MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
@@ -100,7 +112,6 @@ CMD="python run_visual_demo.py \
     --output-file $OUTPUT_FILE \
     --batch-size $BATCH_SIZE \
     --num-inferences $NUM_INFERENCES \
-    --save-interval $SAVE_INTERVAL \
     --temperature $TEMPERATURE \
     --top-p $TOP_P \
     --top-k $TOP_K \

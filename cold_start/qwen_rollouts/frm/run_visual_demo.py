@@ -26,9 +26,9 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
 
     Expected format:
     <ref_think>reasoning...</ref_think>
-    <ref>0.2</ref>
+    <ref>2</ref>  (now expects 1-based integer index)
     <score_think>reasoning...</score_think>
-    <score>0.25</score>
+    <score>8%</score>  (supports both "8%" and "0.08" formats)
 
     Args:
         response: Model output string
@@ -37,9 +37,9 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
         Dictionary with parsed fields:
         {
             'ref_think': str,
-            'ref': str,
+            'ref': str or int (1-based image number),
             'score_think': str,
-            'score': float or None,
+            'score': float or None (in 0.0-1.0 range),
             'parse_error': bool
         }
     """
@@ -57,22 +57,39 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
         if ref_think_match:
             result['ref_think'] = ref_think_match.group(1).strip()
 
-        # Extract ref
+        # Extract ref (now expects integer 1-based index)
         ref_match = re.search(r'<ref>(.*?)</ref>', response, re.DOTALL)
         if ref_match:
-            result['ref'] = ref_match.group(1).strip()
+            ref_str = ref_match.group(1).strip()
+            try:
+                # Extract just the number (handle "No. 2", "2", "image 2", etc.)
+                ref_num = re.search(r'\d+', ref_str)
+                if ref_num:
+                    result['ref'] = int(ref_num.group())
+                else:
+                    result['ref'] = ref_str  # Keep original if no number found
+            except (ValueError, AttributeError):
+                result['ref'] = ref_str
 
         # Extract score_think
         score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
         if score_think_match:
             result['score_think'] = score_think_match.group(1).strip()
 
-        # Extract score (most important)
+        # Extract score (supports both "8%" and "0.08")
         score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
         if score_match:
             score_str = score_match.group(1).strip()
             try:
-                score_value = float(score_str)
+                # Remove % sign if present
+                if score_str.endswith('%'):
+                    score_value = float(score_str[:-1]) / 100.0
+                else:
+                    score_value = float(score_str)
+                    # If > 1.0, assume it's percentage without % sign
+                    if score_value > 1.0:
+                        score_value = score_value / 100.0
+
                 # Clamp to [0, 1]
                 result['score'] = max(0.0, min(1.0, score_value))
             except ValueError:
@@ -111,6 +128,31 @@ def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) 
 
     relative_error = abs(ground_truth - predicted) / ground_truth
     return relative_error
+
+
+def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> float:
+    """
+    Calculate reference index error: |ground_truth_ref - predicted_ref|
+
+    Measures absolute difference between predicted and ground truth image indices.
+    Lower is better (0.0 = perfect match).
+
+    Args:
+        predicted_ref: Predicted reference image index (1-based) or None if parsing failed
+        ground_truth_ref: Ground truth closest image index (1-based)
+
+    Returns:
+        Absolute error (0.0 = perfect, higher = worse), or inf if predicted_ref is None or not an integer
+    """
+    if predicted_ref is None:
+        return float('inf')
+
+    # Ensure predicted_ref is an integer
+    if not isinstance(predicted_ref, int):
+        return float('inf')
+
+    absolute_error = abs(ground_truth_ref - predicted_ref)
+    return float(absolute_error)
 
 
 def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, result_queue: Queue):
@@ -157,17 +199,21 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                     is_valid, error_msg = validate_image_paths(item)
                     if not is_valid:
                         # Skip this item, record error
+                        ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
                         result = {
-                            "id": item['id'],
-                            "ground_truth": item['progress_score'],
-                            "predicted_score": None,
-                            "evaluation_score": 0.0,
-                            "error": True,
-                            "error_message": error_msg,
-                            "model_outputs": ""
+                            "ref": None,
+                            "score": None,
+                            "closest_idx": str(item['closest_idx']),
+                            "ground_truth_score": ground_truth_score_str,
+                            "response": f"Validation error: {error_msg}",
+                            "meta_data": {
+                                "id": item['id'],
+                                "task_goal": item.get('task_goal', ''),
+                                "status": "failed"
+                            }
                         }
                         results.append(result)
-                        progress_queue.put((1, 0.0, 1))  # (processed, score, error)
+                        progress_queue.put((1, float('inf'), float('inf'), 1))  # (processed, score, ref_error, error)
                         continue
 
                     messages = build_visual_demo_prompt_from_item(
@@ -192,59 +238,80 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         # Parse response
                         parsed = parse_visual_demo_response(response)
                         predicted_score = parsed['score']
+                        predicted_ref = parsed['ref']
                         has_error = parsed['parse_error']
 
-                        # Calculate evaluation score
+                        # Calculate evaluation score for progress
                         evaluation_score = calculate_evaluation_score(
                             predicted_score,
                             item['progress_score']
                         )
 
-                        result = {
-                            "id": item['id'],
-                            "ground_truth": item['progress_score'],
-                            "predicted_score": predicted_score,
-                            "evaluation_score": evaluation_score,
-                            "error": has_error,
-                            "model_outputs": response
-                        }
+                        # Calculate reference index error
+                        ref_error = calculate_ref_error(
+                            predicted_ref,
+                            item['closest_idx']
+                        )
 
-                        if has_error:
-                            result["error_message"] = "Failed to parse <score> tag"
+                        # Convert scores back to percentage strings
+                        predicted_score_str = f"{int(predicted_score * 100)}%" if predicted_score is not None else None
+                        ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
+                        predicted_ref_str = str(predicted_ref) if predicted_ref is not None else None
+
+                        result = {
+                            "ref": predicted_ref_str,
+                            "score": predicted_score_str,
+                            "closest_idx": str(item['closest_idx']),
+                            "ground_truth_score": ground_truth_score_str,
+                            "response": response,
+                            "meta_data": {
+                                "id": item['id'],
+                                "task_goal": item.get('task_goal', ''),
+                                "status": "failed" if has_error else "success"
+                            }
+                        }
 
                         results.append(result)
 
-                        # Report progress: (processed_count, score, error)
-                        progress_queue.put((1, evaluation_score, 1 if has_error else 0))
+                        # Report progress: (processed_count, score, ref_error, error)
+                        progress_queue.put((1, evaluation_score, ref_error, 1 if has_error else 0))
 
                     except Exception as e:
                         # Parse error for this specific item
+                        ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
                         result = {
-                            "id": item['id'],
-                            "ground_truth": item['progress_score'],
-                            "predicted_score": None,
-                            "evaluation_score": 0.0,
-                            "error": True,
-                            "error_message": f"Processing error: {str(e)}",
-                            "model_outputs": response if response else ""
+                            "ref": None,
+                            "score": None,
+                            "closest_idx": str(item['closest_idx']),
+                            "ground_truth_score": ground_truth_score_str,
+                            "response": f"Processing error: {str(e)}\nResponse: {response if response else ''}",
+                            "meta_data": {
+                                "id": item['id'],
+                                "task_goal": item.get('task_goal', ''),
+                                "status": "failed"
+                            }
                         }
                         results.append(result)
-                        progress_queue.put((1, 0.0, 1))
+                        progress_queue.put((1, float('inf'), float('inf'), 1))
 
             except Exception as e:
                 # Batch error - mark all items in batch as errors
                 for item in batch_items:
+                    ground_truth_score_str = f"{int(item.get('progress_score', 0.0) * 100)}%"
                     result = {
-                        "id": item['id'],
-                        "ground_truth": item.get('progress_score', 0.0),
-                        "predicted_score": None,
-                        "evaluation_score": 0.0,
-                        "error": True,
-                        "error_message": f"Batch error: {str(e)}",
-                        "model_outputs": ""
+                        "ref": None,
+                        "score": None,
+                        "closest_idx": str(item.get('closest_idx', 0)),
+                        "ground_truth_score": ground_truth_score_str,
+                        "response": f"Batch error: {str(e)}",
+                        "meta_data": {
+                            "id": item['id'],
+                            "task_goal": item.get('task_goal', ''),
+                            "status": "failed"
+                        }
                     }
                     results.append(result)
-                    progress_queue.put((1, 0.0, 1))
+                    progress_queue.put((1, float('inf'), float('inf'), 1))
 
             # Update processed count
             processed_count += len(batch_items)
@@ -350,11 +417,12 @@ def run_visual_demo_inference(args):
     # Monitor progress with unified tqdm
     total_processed = 0
     total_score_sum = 0.0
+    total_ref_error_sum = 0.0
     valid_count = 0  # Count of non-error samples
     error_count = 0
 
     # Use tqdm with fixed width - dynamic single-line update only
-    pbar = tqdm(total=len(data), desc="Progress", ncols=120,
+    pbar = tqdm(total=len(data), desc="Progress", ncols=140,
                 miniters=10, mininterval=2.0, smoothing=0.3, dynamic_ncols=False,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]')
 
@@ -377,16 +445,21 @@ def run_visual_demo_inference(args):
             # Collect all pending progress updates
             batch_proc_count = 0
             batch_score_sum = 0.0
+            batch_ref_error_sum = 0.0
             batch_valid_count = 0
             batch_errors = 0
 
             while not progress_queue.empty():
-                # Each progress update: (processed_count, score, error)
-                proc_count, score, error = progress_queue.get_nowait()
+                # Each progress update: (processed_count, score, ref_error, error)
+                proc_count, score, ref_error, error = progress_queue.get_nowait()
                 batch_proc_count += proc_count
-                batch_score_sum += score
+                # Only sum finite values
+                if score != float('inf'):
+                    batch_score_sum += score
+                if ref_error != float('inf'):
+                    batch_ref_error_sum += ref_error
                 batch_errors += error
-                # Only count non-error samples for mean score calculation
+                # Only count non-error samples for mean calculation
                 if error == 0:
                     batch_valid_count += proc_count
 
@@ -394,6 +467,7 @@ def run_visual_demo_inference(args):
             if batch_proc_count > 0:
                 total_processed += batch_proc_count
                 total_score_sum += batch_score_sum
+                total_ref_error_sum += batch_ref_error_sum
                 valid_count += batch_valid_count
                 error_count += batch_errors
                 accumulated_updates += batch_proc_count
@@ -410,10 +484,11 @@ def run_visual_demo_inference(args):
             current_time = time.time()
             if accumulated_updates > 0 and (current_time - last_update_time >= update_interval or total_processed >= len(data)):
                 pbar.update(accumulated_updates)
-                # Only calculate mean score from valid (non-error) samples
+                # Only calculate mean from valid (non-error) samples
                 mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
+                mean_ref_error = total_ref_error_sum / valid_count if valid_count > 0 else 0.0
                 error_rate = error_count / total_processed * 100 if total_processed > 0 else 0.0
-                pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, ErrorRate={error_rate:.1f}%")
+                pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}, ErrorRate={error_rate:.1f}%")
                 accumulated_updates = 0
                 last_update_time = current_time
 
@@ -468,7 +543,7 @@ def run_visual_demo_inference(args):
                 break
 
         if all_results:
-            all_results.sort(key=lambda x: x.get('id', ''))
+            all_results.sort(key=lambda x: x.get('meta_data', {}).get('id', ''))
             partial_file = output_file.replace('.jsonl', '_partial.jsonl')
             print(f"\nSaving partial results to: {partial_file}")
             with open(partial_file, 'w', encoding='utf-8') as f:
@@ -490,12 +565,15 @@ def run_visual_demo_inference(args):
         drain_count = 0
         while not progress_queue.empty():
             try:
-                proc_count, score, error = progress_queue.get_nowait()
+                proc_count, score, ref_error, error = progress_queue.get_nowait()
                 total_processed += proc_count
-                total_score_sum += score
+                if score != float('inf'):
+                    total_score_sum += score
+                if ref_error != float('inf'):
+                    total_ref_error_sum += ref_error
                 error_count += error
                 drain_count += proc_count
-                # Only count non-error samples for mean score calculation
+                # Only count non-error samples for mean calculation
                 if error == 0:
                     valid_count += proc_count
             except:
@@ -504,7 +582,8 @@ def run_visual_demo_inference(args):
         if drain_count > 0:
             print(f"Drained {drain_count} remaining progress updates")
             mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
-            print(f"Final count: {total_processed}/{len(data)}, MeanScore={mean_score:.3f}")
+            mean_ref_error = total_ref_error_sum / valid_count if valid_count > 0 else 0.0
+            print(f"Final count: {total_processed}/{len(data)}, MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}")
 
         print("\nWaiting for all workers to finish...")
 
@@ -563,7 +642,7 @@ def run_visual_demo_inference(args):
             print(f"  Warning: GPU {gpu_id} file not found: {gpu_file}")
 
     # Sort results by id
-    all_results.sort(key=lambda x: x.get('id', ''))
+    all_results.sort(key=lambda x: x.get('meta_data', {}).get('id', ''))
 
     # Write merged results to final output file
     print(f"\nWriting {len(all_results)} merged results to {output_file}...")
@@ -574,12 +653,10 @@ def run_visual_demo_inference(args):
     print(f"Merged results saved. Individual GPU files are preserved.")
 
     # Calculate final statistics
-    valid_results = [r for r in all_results if not r['error']]
-    # Filter out inf values for mean calculation
-    finite_scores_all = [r['evaluation_score'] for r in all_results if r['evaluation_score'] != float('inf')]
-    finite_scores_valid = [r['evaluation_score'] for r in valid_results if r['evaluation_score'] != float('inf')]
-    mean_score = sum(finite_scores_all) / len(finite_scores_all) if finite_scores_all else float('inf')
-    mean_score_valid = sum(finite_scores_valid) / len(finite_scores_valid) if finite_scores_valid else float('inf')
+    valid_results = [r for r in all_results if r['meta_data']['status'] == 'success']
+    # Use the already calculated mean_score and mean_ref_error from progress tracking
+    mean_score_final = total_score_sum / valid_count if valid_count > 0 else float('inf')
+    mean_ref_error_final = total_ref_error_sum / valid_count if valid_count > 0 else float('inf')
     error_rate = error_count / len(all_results) if all_results else 0.0
 
     # Print final summary
@@ -591,8 +668,8 @@ def run_visual_demo_inference(args):
     print(f"Inferences per sample: {args.num_inferences}")
     print(f"Processed: {len(all_results)}")
     print(f"Errors: {error_count} ({error_rate*100:.2f}%)")
-    print(f"Mean evaluation score (all): {mean_score:.4f}")
-    print(f"Mean evaluation score (valid only): {mean_score_valid:.4f}")
+    print(f"Mean evaluation score: {mean_score_final:.4f}")
+    print(f"Mean ref error: {mean_ref_error_final:.4f}")
     print(f"Results saved to: {output_file}")
     print("=" * 70)
 
@@ -605,8 +682,8 @@ def run_visual_demo_inference(args):
         "processed": len(all_results),
         "errors": error_count,
         "error_rate": error_rate,
-        "mean_evaluation_score_all": mean_score,
-        "mean_evaluation_score_valid": mean_score_valid,
+        "mean_evaluation_score": mean_score_final,
+        "mean_ref_error": mean_ref_error_final,
         "batch_size": args.batch_size,
         "num_gpus": num_gpus,
         "dataset_path": args.dataset_path,
