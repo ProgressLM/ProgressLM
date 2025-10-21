@@ -27,12 +27,12 @@ MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3
 # Dataset configuration
 # DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
 
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_h5_franka_3rgb_sft.jsonl"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_franka_3rgb_sft.jsonl"
 
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/text_think/franka"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/text_demo_results_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/text_demo_${TIMESTAMP}.log"
