@@ -23,21 +23,21 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/home/runsheng/personal_3/qiancx/Sources/models/Qwen2.5-VL-3B-Instruct"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration
-DATASET_PATH="/home/runsheng/personal_3/qiancx/Process/Data/FRM/annotations/comm_frm_visual_sub3k.jsonl"
-IMAGE_ROOT="/home/runsheng/personal_3/qiancx/Process/Data/CoMM/comm"  # Optional: root directory for relative image paths
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_h5_franka_3rgb_sft.jsonl"
+IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"  # Optional: root directory for relative image paths
 
 # Output configuration
-OUTPUT_DIR="/home/runsheng/personal_3/qiancx/Sources/results/visual_demo"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/visual_think"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/visual_demo_results_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/visual_demo_${TIMESTAMP}.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=4  # Batch size per GPU (adjust based on VRAM and image count)
+BATCH_SIZE=2  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
