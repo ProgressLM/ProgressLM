@@ -23,6 +23,13 @@ from utils import (
 )
 
 
+# System prompt for inference mode
+TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of an ongoing task based on a textual demonstration of its step-by-step progression.
+
+The demonstration consists of a sequence of text instructions (text_demo), each describing one step of the process.
+Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
+
+
 # Task instruction text (from original prompt, excluding ground_truth section)
 TEXT_DEMO_INSTRUCTION = """Your task:
 1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
@@ -94,9 +101,13 @@ def convert_text_demo_item(
     stage_filename = normalize_stage_to_estimate(original_item['stage_to_estimate'])
     image_path = build_image_path(original_item['id'], stage_filename)
 
-    # Construct ShareGPT format
+    # Construct ShareGPT format with system prompt
     converted = {
         "messages": [
+            {
+                "role": "system",
+                "content": TEXT_DEMO_SYSTEM_PROMPT
+            },
             {
                 "role": "user",
                 "content": user_content
@@ -256,7 +267,8 @@ def convert_text_demo_dataset(
             converted = convert_text_demo_item(orig_item, cot_item)
 
             # Validate
-            user_content = converted['messages'][0]['content']
+            # messages[0] = system, messages[1] = user, messages[2] = assistant
+            user_content = converted['messages'][1]['content']
             images = converted['images']
             if validate_image_tag_count(user_content, images):
                 stats['validation_passed'] += 1
@@ -265,7 +277,7 @@ def convert_text_demo_dataset(
                 continue
 
             # Validate assistant response
-            assistant_content = converted['messages'][1]['content']
+            assistant_content = converted['messages'][2]['content']
             if not validate_xml_tags(assistant_content):
                 print(f"  Warning: Invalid XML tags in assistant response for {id}")
                 continue

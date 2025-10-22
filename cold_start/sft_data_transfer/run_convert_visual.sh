@@ -23,17 +23,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORIGINAL_DIR="/Users/cxqian/Codes/ProgressLM/data/train/visual_demo"
 
 # CoT responses directory (UPDATE THIS PATH!)
-COT_DIR="/path/to/cot/responses/visual_demo"
+COT_DIR="/Users/cxqian/Codes/ProgressLM/data/sft_data/visual"
 
 # Output directory
-OUTPUT_DIR="/Users/cxqian/Codes/ProgressLM/LLaMA-Factory/data"
+OUTPUT_DIR="/Users/cxqian/Codes/ProgressLM/data/sft_data/visual"
 
 # Dataset configurations: "dataset_name|original_file|cot_file"
 DATASETS=(
-    "visual_h5_agilex_3rgb|visual_h5_agilex_3rgb_sft.jsonl|visual_h5_agilex_3rgb_cot.jsonl"
-    "visual_h5_tienkung_xsens|visual_h5_tienkung_xsens_sft.jsonl|visual_h5_tienkung_xsens_cot.jsonl"
-    "visual_h5_franka_3rgb|visual_h5_franka_3rgb_sft.jsonl|visual_h5_franka_3rgb_cot.jsonl"
-    "visual_h5_ur_1rgb|visual_h5_ur_1rgb_sft.jsonl|visual_h5_ur_1rgb_cot.jsonl"
+    "visual_h5_agilex_3rgb|visual_h5_agilex_3rgb_sft.jsonl|visual_agilex_cold.jsonl"
+    "visual_h5_franka_3rgb|visual_h5_franka_3rgb_sft.jsonl|visual_franka_cold.jsonl"
+    "visual_h5_tienkung_xsens|visual_h5_tienkung_xsens_sft.jsonl|visual_h5_tienkung_cold.jsonl"
+    "visual_h5_ur_1rgb|visual_h5_ur_1rgb_sft.jsonl|visual_hr_cold.jsonl"
 )
 
 # ==================== Validation ====================

@@ -51,16 +51,37 @@ def validate_sample(sample: Dict[str, Any], idx: int, verbose: bool = False) -> 
         result['errors'].append("'messages' must be a list")
         return result
 
-    if len(messages) != 2:
+    # Support both 2-message (user, assistant) and 3-message (system, user, assistant) formats
+    if len(messages) not in [2, 3]:
         result['valid'] = False
-        result['errors'].append(f"'messages' should have 2 items, got {len(messages)}")
+        result['errors'].append(f"'messages' should have 2 or 3 items, got {len(messages)}")
         return result
 
+    # Determine message indices based on count
+    if len(messages) == 3:
+        # Format: [system, user, assistant]
+        system_msg = messages[0]
+        user_msg = messages[1]
+        assistant_msg = messages[2]
+
+        # Check system message
+        if system_msg.get('role') != 'system':
+            result['valid'] = False
+            result['errors'].append(f"First message role should be 'system', got '{system_msg.get('role')}'")
+
+        if 'content' not in system_msg:
+            result['valid'] = False
+            result['errors'].append("System message missing 'content' field")
+    else:
+        # Format: [user, assistant]
+        user_msg = messages[0]
+        assistant_msg = messages[1]
+
     # Check user message
-    user_msg = messages[0]
     if user_msg.get('role') != 'user':
         result['valid'] = False
-        result['errors'].append(f"First message role should be 'user', got '{user_msg.get('role')}'")
+        expected_idx = "second" if len(messages) == 3 else "first"
+        result['errors'].append(f"{expected_idx.capitalize()} message role should be 'user', got '{user_msg.get('role')}'")
 
     if 'content' not in user_msg:
         result['valid'] = False
@@ -68,10 +89,10 @@ def validate_sample(sample: Dict[str, Any], idx: int, verbose: bool = False) -> 
         return result
 
     # Check assistant message
-    assistant_msg = messages[1]
     if assistant_msg.get('role') != 'assistant':
         result['valid'] = False
-        result['errors'].append(f"Second message role should be 'assistant', got '{assistant_msg.get('role')}'")
+        expected_idx = "third" if len(messages) == 3 else "second"
+        result['errors'].append(f"{expected_idx.capitalize()} message role should be 'assistant', got '{assistant_msg.get('role')}'")
 
     if 'content' not in assistant_msg:
         result['valid'] = False

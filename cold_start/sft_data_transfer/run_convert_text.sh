@@ -23,16 +23,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORIGINAL_DIR="/Users/cxqian/Codes/ProgressLM/data/train/text_demo"
 
 # CoT responses directory (UPDATE THIS PATH!)
-COT_DIR="/path/to/cot/responses/text_demo"
+COT_DIR="/Users/cxqian/Codes/ProgressLM/data/sft_data/text"
 
 # Output directory
-OUTPUT_DIR="/Users/cxqian/Codes/ProgressLM/LLaMA-Factory/data"
+OUTPUT_DIR="/Users/cxqian/Codes/ProgressLM/data/sft_data/text"
 
 # Dataset configurations: "dataset_name|original_file|cot_file"
 DATASETS=(
-    "text_h5_agilex_3rgb|text_h5_agilex_3rgb_sft.jsonl|text_h5_agilex_3rgb_cot.jsonl"
-    "text_h5_tienkung_xsens|text_h5_tienkung_xsens_sft.jsonl|text_h5_tienkung_xsens_cot.jsonl"
-    "text_h5_franka_3rgb|text_h5_franka_3rgb_sft.jsonl|text_h5_franka_3rgb_cot.jsonl"
+    "text_h5_agilex_3rgb|text_h5_agilex_3rgb_sft.jsonl|text_agilex_cold.jsonl"
+    "text_coin|text_coin_sft.jsonl|text_coin_cold.jsonl"
+    "text_h5_franka_3rgb|text_h5_franka_3rgb_sft.jsonl|text_franka_cold.jsonl"
+    "text_h5_tienkung_xsens|text_h5_tienkung_xsens_sft.jsonl|text_tienkung_cold.jsonl"
 )
 
 # ==================== Validation ====================

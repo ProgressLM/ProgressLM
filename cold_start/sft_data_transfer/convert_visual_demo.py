@@ -24,6 +24,10 @@ from utils import (
 )
 
 
+# System prompt for inference mode
+VISUAL_DEMO_SYSTEM_PROMPT = """You are a progress estimator specializing in evaluating the progress of an ongoing task based on visual evidence. The demonstration consists of a sequence of video frames (images) showing how the task evolves from 0% (start) to 100% (completion). Your goal is to produce a human-like reasoning chain that logically supports the given progress score."""
+
+
 # Task instruction text (from original prompt, excluding ground_truth section)
 VISUAL_DEMO_INSTRUCTION = """Your task:
 1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
@@ -108,9 +112,13 @@ def convert_visual_demo_item(
     # Combine: visual_demo images + stage_to_estimate
     all_image_paths = visual_demo_paths + [stage_path]
 
-    # Construct ShareGPT format
+    # Construct ShareGPT format with system prompt
     converted = {
         "messages": [
+            {
+                "role": "system",
+                "content": VISUAL_DEMO_SYSTEM_PROMPT
+            },
             {
                 "role": "user",
                 "content": user_content
@@ -270,7 +278,8 @@ def convert_visual_demo_dataset(
             converted = convert_visual_demo_item(orig_item, cot_item)
 
             # Validate: number of <image> tags should equal number of images
-            user_content = converted['messages'][0]['content']
+            # messages[0] = system, messages[1] = user, messages[2] = assistant
+            user_content = converted['messages'][1]['content']
             images = converted['images']
 
             image_tag_count = count_image_tags(user_content)
@@ -282,7 +291,7 @@ def convert_visual_demo_dataset(
             stats['validation_passed'] += 1
 
             # Validate assistant response
-            assistant_content = converted['messages'][1]['content']
+            assistant_content = converted['messages'][2]['content']
             if not validate_xml_tags(assistant_content):
                 print(f"  Warning: Invalid XML tags in assistant response for {id}")
                 continue
