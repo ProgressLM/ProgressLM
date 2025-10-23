@@ -22,21 +22,21 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-32B-Instruct"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/text/all_text.jsonl"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/text/text_eval_all.jsonl"
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/eval_text"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/sft_3b_text"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/eval_text_results_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/eval_text_${TIMESTAMP}.log"
 
 # GPU configuration
-GPU_IDS="0,1"  # Comma-separated GPU IDs to use
-BATCH_SIZE=2  # Batch size per GPU (can be higher since only 1 image per sample)
+GPU_IDS="2,3"  # Comma-separated GPU IDs to use
+BATCH_SIZE=64  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -98,7 +98,7 @@ export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 EVAL_DIR="$PROJECT_DIR/qwen25vl"
 
 # Change to eval directory
