@@ -209,6 +209,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {
                                 "id": item['id'],
                                 "task_goal": item.get('task_goal', ''),
+                                "stage_to_estimate": item.get('stage_to_estimate', ''),
                                 "status": "failed"
                             }
                         }
@@ -267,6 +268,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {
                                 "id": item['id'],
                                 "task_goal": item.get('task_goal', ''),
+                                "stage_to_estimate": item.get('stage_to_estimate', ''),
                                 "status": "failed" if has_error else "success"
                             }
                         }
@@ -288,6 +290,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {
                                 "id": item['id'],
                                 "task_goal": item.get('task_goal', ''),
+                                "stage_to_estimate": item.get('stage_to_estimate', ''),
                                 "status": "failed"
                             }
                         }
@@ -307,6 +310,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "meta_data": {
                             "id": item['id'],
                             "task_goal": item.get('task_goal', ''),
+                            "stage_to_estimate": item.get('stage_to_estimate', ''),
                             "status": "failed"
                         }
                     }
