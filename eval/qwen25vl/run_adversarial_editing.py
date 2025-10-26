@@ -641,7 +641,7 @@ def main():
                         help="Top-p sampling parameter (default: 0.9)")
     parser.add_argument("--top-k", type=int, default=50,
                         help="Top-k sampling parameter (default: 50)")
-    parser.add_argument("--max-new-tokens", type=int, default=1024,
+    parser.add_argument("--max-new-tokens", type=int, default=20000,
                         help="Maximum number of tokens to generate (default: 1024)")
 
     # Image processing parameters

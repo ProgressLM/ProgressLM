@@ -42,7 +42,7 @@ LOG_FILE="${OUTPUT_DIR}/adversarial_editing_72b_${TIMESTAMP}.log"
 
 # GPU configuration - Use all 4 GPUs for model parallelism
 GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
-BATCH_SIZE=1  # Small batch size for 72B model (increase if memory allows)
+BATCH_SIZE=48  # Small batch size for 72B model (increase if memory allows)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -52,7 +52,7 @@ LIMIT=-1  # -1 for all samples, or specify a number to limit
 TEMPERATURE=0.7  # Sampling temperature
 TOP_P=0.9  # Top-p (nucleus) sampling
 TOP_K=50  # Top-k sampling
-MAX_NEW_TOKENS=1024  # Maximum tokens to generate
+MAX_NEW_TOKENS=20000  # Maximum tokens to generate
 MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
