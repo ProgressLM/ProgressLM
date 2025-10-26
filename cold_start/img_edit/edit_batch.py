@@ -278,6 +278,24 @@ class QwenImageEditProcessor:
                     torch.cuda.empty_cache()
                     time.sleep(1)
     
+    def _count_completed_from_checkpoints(self) -> int:
+        """Count total completed tasks from all GPU checkpoint files"""
+        total_completed = 0
+        for i in range(self.num_processes):
+            checkpoint_file = self.checkpoint_dir / f"checkpoint_gpu_{i}.json"
+            if checkpoint_file.exists():
+                try:
+                    with open(checkpoint_file, 'r') as f:
+                        data = json.load(f)
+                        completed_count = len(data.get('completed_tasks', []))
+                        total_completed += completed_count
+                        if self.gpu_id == 0:
+                            self.logger.info(f"GPU {i}: {completed_count} tasks completed")
+                except Exception as e:
+                    if self.gpu_id == 0:
+                        self.logger.warning(f"Error reading checkpoint for GPU {i}: {e}")
+        return total_completed
+
     def process_batch(self, jsonl_path: str):
         """Process batch with global progress tracking"""
         # Load all tasks (before checkpoint filtering)
@@ -290,35 +308,16 @@ class QwenImageEditProcessor:
                 except Exception as e:
                     self.logger.error(f"Error loading line: {e}")
 
-        # Count completed tasks across all GPUs for checkpoint resume
-        total_completed = len(self.completed_tasks)
-
-        # Gather completed counts from all GPUs
-        all_completed_counts = [None] * self.num_processes
-        all_completed_counts[self.gpu_id] = total_completed
-
-        # Share completed counts (simple approach: use shared dict)
-        with progress_lock:
-            if f'completed_gpu_{self.gpu_id}' not in shared_progress:
-                shared_progress[f'completed_gpu_{self.gpu_id}'] = total_completed
-
-        self.distributed_state.wait_for_everyone()
-
-        # Calculate total completed tasks across all GPUs
-        total_already_completed = sum(
-            shared_progress.get(f'completed_gpu_{i}', 0)
-            for i in range(self.num_processes)
-        )
-
-        # Initialize shared progress on GPU 0
+        # Only GPU 0 reads all checkpoint files and initializes shared progress
         if self.gpu_id == 0:
+            total_already_completed = self._count_completed_from_checkpoints()
             shared_progress['total'] = len(all_tasks_raw)
             shared_progress['completed'] = total_already_completed
             shared_progress['failed'] = 0
             if total_already_completed > 0:
                 self.logger.info(f"Resuming from checkpoint: {total_already_completed}/{len(all_tasks_raw)} tasks already completed")
 
-        # Wait for initialization
+        # Wait for GPU 0 to initialize shared progress
         self.distributed_state.wait_for_everyone()
 
         # Load tasks with checkpoint filtering (will skip already completed)
