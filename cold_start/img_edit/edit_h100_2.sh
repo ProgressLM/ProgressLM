@@ -5,13 +5,13 @@
 # ================================================
 
 # Default values
-JSONL_FILE="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/negative/sub_train/ad_1.jsonl"
+JSONL_FILE="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/negative/sub_train/ad_3.jsonl"
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen-Image-Edit"
 IMAGE_DIR="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 SAVE_DIR="/projects/p32958/chengxuan/results/progresslm/negative/image"
 CHECKPOINT_DIR="/projects/p32958/chengxuan/results/progresslm/negative/ckpt"
 NUM_GPUS=4
-GPU_IDS="0,1,2,3"
+GPU_IDS="0,1"
 MAX_RETRIES=2
 CHECKPOINT=true
 
