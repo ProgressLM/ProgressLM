@@ -83,6 +83,11 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export OMP_NUM_THREADS=8
 export TOKENIZERS_PARALLELISM=false
 
+# Disable NCCL timeout for long-running tasks (each image takes ~2 minutes)
+# Default timeout is 10 minutes which may not be enough for slow GPUs
+export NCCL_ASYNC_ERROR_HANDLING=1
+export NCCL_TIMEOUT=0  # 0 = no timeout
+
 # Count tasks
 TASK_COUNT=$(wc -l < "$JSONL_FILE")
 

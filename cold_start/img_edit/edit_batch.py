@@ -309,8 +309,8 @@ class QwenImageEditProcessor:
             if total_already_completed > 0:
                 self.logger.info(f"Resuming from checkpoint: {total_already_completed}/{len(all_tasks_raw)} tasks already completed")
 
-        # Wait for GPU 0 to initialize shared progress
-        self.distributed_state.wait_for_everyone()
+        # Wait for GPU 0 to initialize shared progress (no timeout - tasks are long)
+        # Note: NCCL timeout is handled by environment variable NCCL_TIMEOUT
 
         # Get total from shared memory
         total_tasks = shared_progress['total']
@@ -352,22 +352,42 @@ class QwenImageEditProcessor:
                 json.dump(results, f, indent=2, ensure_ascii=False)
             
             self.logger.info(f"Saved {len(results)} results to {output_file}")
-            
-            # Wait for all GPUs
-            self.distributed_state.wait_for_everyone()
-            
-            # Aggregate results on GPU 0
+
+            # Aggregate results on GPU 0 (wait for all result files without NCCL sync)
             if self.gpu_id == 0:
                 self._aggregate_results()
     
     def _aggregate_results(self):
         """Aggregate results from all GPUs and print final statistics"""
+        import time as time_module
+
+        self.logger.info("Waiting for all GPU result files...")
+
+        # Wait for all result files to be created (with timeout)
+        max_wait = 600  # 10 minutes
+        start_wait = time_module.time()
+        while time_module.time() - start_wait < max_wait:
+            missing = []
+            for i in range(self.num_processes):
+                result_file = self.save_dir / f"results_gpu_{i}.json"
+                if not result_file.exists():
+                    missing.append(i)
+
+            if not missing:
+                break
+
+            self.logger.info(f"Waiting for GPU {missing} to finish...")
+            time_module.sleep(10)
+
+        # Aggregate results
         all_results = []
         for i in range(self.num_processes):
             result_file = self.save_dir / f"results_gpu_{i}.json"
             if result_file.exists():
                 with open(result_file, 'r') as f:
                     all_results.extend(json.load(f))
+            else:
+                self.logger.warning(f"Result file for GPU {i} not found after waiting")
         
         # Save aggregated results
         with open(self.save_dir / "all_results.json", 'w') as f:
