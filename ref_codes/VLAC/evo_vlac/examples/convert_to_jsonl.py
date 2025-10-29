@@ -52,18 +52,16 @@ def generate_visual_demo_jsonl():
             # Create unique ID for this sample
             sample_id = f"vlac_example_scoop_rice/camera_{camera_idx}/test_{test_idx:02d}"
 
-            # Build visual_demo paths: {id}/{filename} format
-            # System will prepend IMAGE_ROOT: IMAGE_ROOT/{id}/{filename}
+            # Build visual_demo paths: just filename
+            # System will prepend IMAGE_ROOT/{id}: IMAGE_ROOT/{id}/{filename}
             visual_demo = []
             for ts in ref_timesteps:
                 filename = f"599-{ts}-521-{camera_idx}.jpg"
-                # Path format: {id}/{filename}
-                rel_path = f"{sample_id}/{filename}"
-                visual_demo.append(rel_path)
+                visual_demo.append(filename)
 
-            # Build stage_to_estimate path: {id}/{filename} format
+            # Build stage_to_estimate path: just filename
             stage_filename = f"595-{test_ts}-565-{camera_idx}.jpg"
-            stage_path = f"{sample_id}/{stage_filename}"
+            stage_path = stage_filename
 
             # Calculate progress based on test sequence position
             # test_timesteps are: [6, 44, 134, 139, 292, 354]
