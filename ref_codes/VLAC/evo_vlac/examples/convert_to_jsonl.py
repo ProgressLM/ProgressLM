@@ -17,6 +17,9 @@ def generate_visual_demo_jsonl():
     - stage_to_estimate: test images (6 timesteps)
     - 3 camera views (0, 1, 2)
     - Total: 18 records (6 timesteps × 3 views)
+
+    Path format: {id}/{filename}
+    - The system will prepend IMAGE_ROOT when loading: IMAGE_ROOT/{id}/{filename}
     """
 
     # Base directory
@@ -44,19 +47,23 @@ def generate_visual_demo_jsonl():
     dataset = []
 
     for camera_idx in camera_views:
-        # Build visual_demo paths for this camera view
-        visual_demo = []
-        for ts in ref_timesteps:
-            filename = f"599-{ts}-521-{camera_idx}.jpg"
-            # Use relative path from the examples directory
-            rel_path = f"images/ref/{filename}"
-            visual_demo.append(rel_path)
-
         # For each test timestep, create a record
         for test_idx, test_ts in enumerate(test_timesteps):
-            # Build stage_to_estimate path
+            # Create unique ID for this sample
+            sample_id = f"vlac_example_scoop_rice/camera_{camera_idx}/test_{test_idx:02d}"
+
+            # Build visual_demo paths: {id}/{filename} format
+            # System will prepend IMAGE_ROOT: IMAGE_ROOT/{id}/{filename}
+            visual_demo = []
+            for ts in ref_timesteps:
+                filename = f"599-{ts}-521-{camera_idx}.jpg"
+                # Path format: {id}/{filename}
+                rel_path = f"{sample_id}/{filename}"
+                visual_demo.append(rel_path)
+
+            # Build stage_to_estimate path: {id}/{filename} format
             stage_filename = f"595-{test_ts}-565-{camera_idx}.jpg"
-            stage_path = f"images/test/{stage_filename}"
+            stage_path = f"{sample_id}/{stage_filename}"
 
             # Calculate progress based on test sequence position
             # test_timesteps are: [6, 44, 134, 139, 292, 354]
@@ -80,7 +87,7 @@ def generate_visual_demo_jsonl():
 
             # Create record
             record = {
-                "id": f"vlac_example/{test_sequence_id}/camera_{camera_idx}_test_{test_idx:02d}",
+                "id": sample_id,
                 "task_goal": task_goal,
                 "visual_demo": visual_demo,
                 "total_steps": str(total_steps),
