@@ -1,5 +1,6 @@
 data/images/
-
+ref_codes/VLAC/evo_vlac/examples/videos/ref_images
+ref_codes/VLAC/evo_vlac/examples/videos/test_images
 
 
 # Byte-compiled / optimized / DLL files
