@@ -62,13 +62,13 @@ def format_visual_demo_progress_shifts(total_steps: int) -> str:
     return " ".join(parts)
 
 
-def build_ground_truth_section(closest_idx: int, progress_score: Union[str, float]) -> str:
+def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Union[str, float]) -> str:
     """
     Build the ground-truth section for training mode (CoT generation).
 
     Args:
-        closest_idx: 1-based index of the closest visual_demo image
-        progress_score: Progress score (can be "33%" or 0.33)
+        closest_idx: 1-based index of the closest visual_demo image, or "n/a"
+        progress_score: Progress score (can be "33%", 0.33, or "n/a")
 
     Returns:
         Formatted ground-truth section string
@@ -77,30 +77,44 @@ def build_ground_truth_section(closest_idx: int, progress_score: Union[str, floa
         >>> build_ground_truth_section(1, "8%")
         '**Critical Rule** The correct final progress score will be provided to you...'
     """
-    # Normalize progress_score to percentage string format
-    if isinstance(progress_score, str):
-        # Already string, keep as is if it has %, otherwise add it
-        if not progress_score.endswith('%'):
-            try:
-                val = float(progress_score)
-                if val <= 1.0:
-                    progress_score = f"{int(val * 100)}%"
-                else:
-                    progress_score = f"{int(val)}%"
-            except ValueError:
-                pass  # Keep original
-    elif isinstance(progress_score, (int, float)):
-        # Convert numeric to percentage
-        if progress_score <= 1.0:
-            progress_score = f"{int(progress_score * 100)}%"
+    # Handle "n/a" for closest_idx
+    if isinstance(closest_idx, str) and closest_idx.lower() == "n/a":
+        closest_idx_str = "n/a (no valid reference found)"
+    else:
+        closest_idx_str = f"The No. {closest_idx} demo image is the most relevant frame"
+
+    # Handle "n/a" for progress_score
+    if isinstance(progress_score, str) and progress_score.lower() == "n/a":
+        progress_score_str = "n/a (no valid progress estimation)"
+    else:
+        # Normalize progress_score to percentage string format
+        if isinstance(progress_score, str):
+            # Already string, keep as is if it has %, otherwise add it
+            if not progress_score.endswith('%'):
+                try:
+                    val = float(progress_score)
+                    if val <= 1.0:
+                        progress_score_str = f"{int(val * 100)}%"
+                    else:
+                        progress_score_str = f"{int(val)}%"
+                except ValueError:
+                    progress_score_str = progress_score  # Keep original
+            else:
+                progress_score_str = progress_score
+        elif isinstance(progress_score, (int, float)):
+            # Convert numeric to percentage
+            if progress_score <= 1.0:
+                progress_score_str = f"{int(progress_score * 100)}%"
+            else:
+                progress_score_str = f"{int(progress_score)}%"
         else:
-            progress_score = f"{int(progress_score)}%"
+            progress_score_str = str(progress_score)
 
     ground_truth_text = f"""**Critical Rule** The correct final progress score will be provided to you. However, you must **never** reveal or imply that you already know the answer. Your reasoning must appear as a fully original, independent visual analysis derived from the images.
 
 **Ground-Truth Progress Result**
-Closest Reference Frame: The No. {closest_idx} demo image is the most relevant frame
-Final Progress Score to Justify: {progress_score}"""
+Closest Reference Frame: {closest_idx_str}
+Final Progress Score to Justify: {progress_score_str}"""
 
     return ground_truth_text
 
@@ -110,7 +124,7 @@ def build_visual_demo_prompt(
     visual_demo_paths: List[str],
     total_steps: int,
     stage_to_estimate_path: str,
-    closest_idx: int = None,
+    closest_idx: Union[int, str] = None,
     progress_score: Union[str, float] = None,
     min_pixels: int | None = None,
     max_pixels: int | None = None,

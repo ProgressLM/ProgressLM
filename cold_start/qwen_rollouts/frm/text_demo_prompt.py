@@ -23,17 +23,17 @@ TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
-2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
-3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%.
+TEXT_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
+If you detect any of the following abnormal situations:
+- The current state does not match the task goal or any demo steps
+- The operation appears to have failed or resulted in an error state
+- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
 
 Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step(s) as the reference</ref_think>
-<ref>which text demo is most semantically similar to the current state, and output only the number of that text demo</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step(s)</score_think>
-<score>Your final estimated progress score here</score>"""
+<ref_think>Your reasoning for choosing the most similar text_demo step as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
+<ref>which text demo is most semantically similar to the current state (output only the number), OR "n/a" if abnormal situation detected</ref>
+<score_think>Your reasoning for comparing the current state image with the reference step, OR explanation of why no valid progress score can be assigned</score_think>
+<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
 
 
 def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:
@@ -73,13 +73,13 @@ def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) 
     return "\n\n".join(formatted_parts)
 
 
-def build_ground_truth_section(closest_idx: int, progress_score: Union[str, float]) -> str:
+def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Union[str, float]) -> str:
     """
     Build the ground-truth section for training mode (CoT generation).
 
     Args:
-        closest_idx: 1-based index of the closest text_demo step
-        progress_score: Progress score (can be "33%" or 0.33)
+        closest_idx: 1-based index of the closest text_demo step, or "n/a"
+        progress_score: Progress score (can be "33%", 0.33, or "n/a")
 
     Returns:
         Formatted ground-truth section string
@@ -88,30 +88,44 @@ def build_ground_truth_section(closest_idx: int, progress_score: Union[str, floa
         >>> build_ground_truth_section(1, "33%")
         '**Critical Rule** The correct final progress score will be provided to you...'
     """
-    # Normalize progress_score to percentage string format
-    if isinstance(progress_score, str):
-        # Already string, keep as is if it has %, otherwise add it
-        if not progress_score.endswith('%'):
-            try:
-                val = float(progress_score)
-                if val <= 1.0:
-                    progress_score = f"{int(val * 100)}%"
-                else:
-                    progress_score = f"{int(val)}%"
-            except ValueError:
-                pass  # Keep original
-    elif isinstance(progress_score, (int, float)):
-        # Convert numeric to percentage
-        if progress_score <= 1.0:
-            progress_score = f"{int(progress_score * 100)}%"
+    # Handle "n/a" for closest_idx
+    if isinstance(closest_idx, str) and closest_idx.lower() == "n/a":
+        closest_idx_str = "n/a (no valid reference found)"
+    else:
+        closest_idx_str = f"The No. {closest_idx} text demo is the most relevant one"
+
+    # Handle "n/a" for progress_score
+    if isinstance(progress_score, str) and progress_score.lower() == "n/a":
+        progress_score_str = "n/a (no valid progress estimation)"
+    else:
+        # Normalize progress_score to percentage string format
+        if isinstance(progress_score, str):
+            # Already string, keep as is if it has %, otherwise add it
+            if not progress_score.endswith('%'):
+                try:
+                    val = float(progress_score)
+                    if val <= 1.0:
+                        progress_score_str = f"{int(val * 100)}%"
+                    else:
+                        progress_score_str = f"{int(val)}%"
+                except ValueError:
+                    progress_score_str = progress_score  # Keep original
+            else:
+                progress_score_str = progress_score
+        elif isinstance(progress_score, (int, float)):
+            # Convert numeric to percentage
+            if progress_score <= 1.0:
+                progress_score_str = f"{int(progress_score * 100)}%"
+            else:
+                progress_score_str = f"{int(progress_score)}%"
         else:
-            progress_score = f"{int(progress_score)}%"
+            progress_score_str = str(progress_score)
 
     ground_truth_text = f"""**Critical Rule** The correct final progress score will be provided to you. However, you must **never** reveal or imply that you already know the answer. Your reasoning must appear as a fully original, independent visual analysis derived from the images.
 
 **Ground-Truth Progress Result**
-Closest Reference Frame: The No. {closest_idx} text demo is the most relevant one
-Final Progress Score to Justify: {progress_score}"""
+Closest Reference Frame: {closest_idx_str}
+Final Progress Score to Justify: {progress_score_str}"""
 
     return ground_truth_text
 
@@ -121,7 +135,7 @@ def build_text_demo_prompt(
     text_demo_list: List[str],
     total_steps: int,
     stage_to_estimate_path: str,
-    closest_idx: int = None,
+    closest_idx: Union[int, str] = None,
     progress_score: Union[str, float] = None,
     min_pixels: int | None = None,
     max_pixels: int | None = None,

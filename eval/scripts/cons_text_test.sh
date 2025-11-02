@@ -32,7 +32,8 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"  # UPDATE THIS
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/new_text_negative_sft_raw.jsonl"  # UPDATE THIS
+# DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/new_text_negative_sft_raw.jsonl"  # UPDATE THIS
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/new_text_negative_test.jsonl"  # UPDATE THIS
 IMAGE_ROOT="/projects/p32958/chengxuan/ProgressLM/data/images"  # OPTIONAL - set to empty string "" for text-only mode
 
 # Output configuration

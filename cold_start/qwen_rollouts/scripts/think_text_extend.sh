@@ -1,53 +1,45 @@
 #!/bin/bash
 
 #####################################################################
-# Visual Demo Progress Estimation Evaluation Script - 72B No-Think Mode
+# Text Demo Progress Estimation Script
 #
-# This script runs progress estimation evaluation on Visual Demo dataset
-# using Qwen2-VL 72B model with MODEL PARALLELISM (single process mode).
+# This script runs progress estimation on Text Demo dataset using
+# Qwen2-VL model with distributed GPU support.
 #
-# NO-THINK MODE: Uses simplified prompt that asks for direct score output
-# without intermediate reasoning steps (no <ref_think>, <ref>, <score_think> tags).
-#
-# Key features:
-# - Single process inference (no multi-GPU data parallelism)
-# - Model automatically distributed across 4 GPUs
-# - Optimized for 72B/32B large models
-# - Batch size defaults to 1 for memory efficiency
-# - Direct score output without CoT reasoning
-#
-# Expected JSONL format:
+# Expected JSONL format (NEW VERSION):
 # {
-#   "id": "h5_tienkung_xsens_1rgb/brick_piled_then_press_thrice/2024-10-17-10-53-16",
-#   "task_goal": "Put the blue block next to the purple block in front.",
-#   "visual_demo": ["camera_top_0000.jpg", "camera_top_0041.jpg", "camera_top_0068.jpg", "camera_top_0191.jpg", "camera_top_0394.jpg"],
-#   "total_steps": "4",
-#   "stage_to_estimate": ["camera_top_0013.jpg"],
-#   "closest_idx": "1",
-#   "delta": "+7%",
-#   "progress_score": "8%",
-#   "data_source": "robomind_h5_tienkung_xsens_1rgb"
+#   "id": "h5_tienkung_xsens_1rgb/battery_insertion_with_pullout/2024-09-19-10-35-18",
+#   "task_goal": "inserting a battery into a power bank and then removing it",
+#   "text_demo": ["reach for the power bank", "insert the battery into the power bank", "remove the battery from the power bank"],
+#   "total_steps": 3,
+#   "stage_to_estimate": "camera_top_0474.jpg",
+#   "closest_idx": 1,  # 1-based index (1 means first text_demo)
+#   "progress_score": "33%",
+#   "data_source": "h5_tienkung_xsens_1rgb"
 # }
 #####################################################################
 
 # ======================== Configuration ========================
 
-# Model configuration - 72B Model
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-7B-Instruct"
+# Model configuration
+MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
 
-# Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/eval/visual/visual_eval_new.jsonl"
+# Dataset configuration
+# DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/new_text_sft.jsonl"
+
 IMAGE_ROOT="/projects/p32958/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/raw_7b_visual_nothink"
+OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/cold_data/text_extend_sft"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-OUTPUT_FILE="${OUTPUT_DIR}/eval_visual_7b_nothink_${TIMESTAMP}.jsonl"
-LOG_FILE="${OUTPUT_DIR}/eval_visual_7b_nothink_${TIMESTAMP}.log"
+OUTPUT_FILE="${OUTPUT_DIR}/text_demo_results_${TIMESTAMP}.jsonl"
+LOG_FILE="${OUTPUT_DIR}/text_demo_${TIMESTAMP}.log"
 
-# GPU configuration - Use all 4 GPUs for model parallelism
-GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
-BATCH_SIZE=20  # Small batch size for 72B model (increase if memory allows)
+# GPU configuration
+GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
+BATCH_SIZE=4  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -56,7 +48,7 @@ NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
-MAX_NEW_TOKENS=512  # Reduced for direct output (no CoT reasoning)
+MAX_NEW_TOKENS=40000  # Increased from 30000 to 40000 for longer CoT reasoning chains
 MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
@@ -69,18 +61,13 @@ VERBOSE=false  # Set to true for detailed output
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Visual Demo Progress Estimation - 72B No-Think Mode"
+echo "Text Demo Progress Estimation - Batch Inference"
 echo "======================================================================"
-echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
-echo "GPUs: $GPU_IDS (Model Parallelism Mode)"
-echo "Batch Size: $BATCH_SIZE"
+echo "GPUs: $GPU_IDS"
+echo "Batch Size per GPU: $BATCH_SIZE"
 echo "Inferences per Sample: $NUM_INFERENCES"
-echo "Mode: Direct Score Output (No Reasoning Steps)"
-echo "======================================================================"
-echo "NOTE: Using SINGLE PROCESS with MODEL PARALLELISM"
-echo "      Model will be automatically distributed across all 4 GPUs"
 echo "======================================================================"
 
 # ======================== Validation ========================
@@ -88,7 +75,7 @@ echo "======================================================================"
 # Check if dataset path is provided
 if [ -z "$DATASET_PATH" ]; then
     echo "Error: DATASET_PATH is not set!"
-    echo "Please set DATASET_PATH to your Visual Demo dataset JSONL file."
+    echo "Please set DATASET_PATH to your Text Demo dataset JSONL file."
     exit 1
 fi
 
@@ -109,19 +96,19 @@ mkdir -p "$OUTPUT_DIR"
 
 # ======================== Run Inference ========================
 
-# Set CUDA visible devices to all GPUs for model parallelism
+# Set CUDA visible devices to all GPUs
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
-EVAL_DIR="$PROJECT_DIR/qwen25vl"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+FRM_DIR="$PROJECT_DIR/frm"
 
-# Change to eval directory
-cd "$EVAL_DIR" || exit 1
+# Change to frm directory
+cd "$FRM_DIR" || exit 1
 
-# Build command - using run_visual_demo_72B_nothink.py for no-think mode
-CMD="python run_visual_demo_72B_nothink.py \
+# Build command
+CMD="python run_text_demo.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
@@ -149,7 +136,7 @@ if [ "$VERBOSE" = true ]; then
     CMD="$CMD --verbose"
 fi
 
-echo "Starting 72B model evaluation inference (no-think mode)..."
+echo "Starting batch inference..."
 echo ""
 
 # Execute command with logging

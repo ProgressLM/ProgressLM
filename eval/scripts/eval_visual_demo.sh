@@ -24,27 +24,30 @@
 
 # Model configuration
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/progresslm_sft_epoch2_model"
+# MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/progresslm_sft_epoch2_model"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-7B-Instruct"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_eval_all.jsonl"
-IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_error_fix.jsonl"
+# DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/eval/visual/visual_eval_new.jsonl"
+# IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
+IMAGE_ROOT="/projects/p32958/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/sft_3b_visual"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/raw_7b_visual"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-OUTPUT_FILE="${OUTPUT_DIR}/eval_sft3b_visual_${TIMESTAMP}.jsonl"
+OUTPUT_FILE="${OUTPUT_DIR}/eval_visual_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/eval_visual_${TIMESTAMP}.log"
 
 # GPU configuration
-GPU_IDS="0,1"  # Comma-separated GPU IDs to use
+GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
 BATCH_SIZE=8  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
+TEMPERATURE=0.4  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
 MAX_NEW_TOKENS=40000  # Increased for longer CoT reasoning chains

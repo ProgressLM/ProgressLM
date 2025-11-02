@@ -5,7 +5,7 @@ import argparse
 import time
 import re
 from tqdm import tqdm
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 import torch
 import traceback
 import multiprocessing as mp
@@ -57,43 +57,51 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
         if ref_think_match:
             result['ref_think'] = ref_think_match.group(1).strip()
 
-        # Extract ref (now expects integer 1-based index)
+        # Extract ref (now expects integer 1-based index or "n/a")
         ref_match = re.search(r'<ref>(.*?)</ref>', response, re.DOTALL)
         if ref_match:
             ref_str = ref_match.group(1).strip()
-            try:
-                # Extract just the number (handle "No. 2", "2", "image 2", etc.)
-                ref_num = re.search(r'\d+', ref_str)
-                if ref_num:
-                    result['ref'] = int(ref_num.group())
-                else:
-                    result['ref'] = ref_str  # Keep original if no number found
-            except (ValueError, AttributeError):
-                result['ref'] = ref_str
+            # Check if it's "n/a" (case-insensitive)
+            if ref_str.lower() in ['n/a', 'na']:
+                result['ref'] = "n/a"
+            else:
+                try:
+                    # Extract just the number (handle "No. 2", "2", "image 2", etc.)
+                    ref_num = re.search(r'\d+', ref_str)
+                    if ref_num:
+                        result['ref'] = int(ref_num.group())
+                    else:
+                        result['ref'] = ref_str  # Keep original if no number found
+                except (ValueError, AttributeError):
+                    result['ref'] = ref_str
 
         # Extract score_think
         score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
         if score_think_match:
             result['score_think'] = score_think_match.group(1).strip()
 
-        # Extract score (supports both "8%" and "0.08")
+        # Extract score (supports "8%", "0.08", or "n/a")
         score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
         if score_match:
             score_str = score_match.group(1).strip()
-            try:
-                # Remove % sign if present
-                if score_str.endswith('%'):
-                    score_value = float(score_str[:-1]) / 100.0
-                else:
-                    score_value = float(score_str)
-                    # If > 1.0, assume it's percentage without % sign
-                    if score_value > 1.0:
-                        score_value = score_value / 100.0
+            # Check if it's "n/a" (case-insensitive)
+            if score_str.lower() in ['n/a', 'na']:
+                result['score'] = "n/a"
+            else:
+                try:
+                    # Remove % sign if present
+                    if score_str.endswith('%'):
+                        score_value = float(score_str[:-1]) / 100.0
+                    else:
+                        score_value = float(score_str)
+                        # If > 1.0, assume it's percentage without % sign
+                        if score_value > 1.0:
+                            score_value = score_value / 100.0
 
-                # Clamp to [0, 1]
-                result['score'] = max(0.0, min(1.0, score_value))
-            except ValueError:
-                result['parse_error'] = True
+                    # Clamp to [0, 1]
+                    result['score'] = max(0.0, min(1.0, score_value))
+                except ValueError:
+                    result['parse_error'] = True
         else:
             result['parse_error'] = True
 
@@ -103,21 +111,31 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
     return result
 
 
-def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) -> float:
+def calculate_evaluation_score(predicted: Union[float, str, None], ground_truth: Union[float, str]) -> float:
     """
     Calculate evaluation score: |ground_truth - predicted| / ground_truth
 
     Uses pure relative error metric. Lower is better (0.0 = perfect prediction).
-    This is more suitable for progress estimation as it considers the magnitude
-    of the true value.
+    For "n/a" ground truth, checks if predicted is also "n/a" (Pass/Fail).
 
     Args:
-        predicted: Predicted progress score (0-1) or None if parsing failed
-        ground_truth: Ground truth progress score (0-1)
+        predicted: Predicted progress score (0-1), "n/a", or None if parsing failed
+        ground_truth: Ground truth progress score (0-1) or "n/a"
 
     Returns:
-        Relative error (0.0 = perfect, higher = worse), or inf if predicted is None or ground_truth is 0
+        Relative error (0.0 = perfect, higher = worse), or inf if prediction failed
     """
+    # Handle "n/a" ground truth: only "n/a" prediction is correct
+    if isinstance(ground_truth, str) and ground_truth.lower() == "n/a":
+        if isinstance(predicted, str) and predicted.lower() == "n/a":
+            return 0.0  # Perfect match: both "n/a"
+        else:
+            return float('inf')  # Wrong: should predict "n/a" but didn't
+
+    # Handle "n/a" prediction with numeric ground truth
+    if isinstance(predicted, str) and predicted.lower() == "n/a":
+        return float('inf')  # Wrong: predicted "n/a" but ground truth is numeric
+
     if predicted is None:
         return float('inf')
 
@@ -130,20 +148,31 @@ def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) 
     return relative_error
 
 
-def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> float:
+def calculate_ref_error(predicted_ref: Union[int, str, None], ground_truth_ref: Union[int, str]) -> float:
     """
     Calculate reference index error: |ground_truth_ref - predicted_ref|
 
     Measures absolute difference between predicted and ground truth image indices.
-    Lower is better (0.0 = perfect match).
+    For "n/a" ground truth, checks if predicted is also "n/a" (Pass/Fail).
 
     Args:
-        predicted_ref: Predicted reference image index (1-based) or None if parsing failed
-        ground_truth_ref: Ground truth closest image index (1-based)
+        predicted_ref: Predicted reference image index (1-based), "n/a", or None if parsing failed
+        ground_truth_ref: Ground truth closest image index (1-based) or "n/a"
 
     Returns:
-        Absolute error (0.0 = perfect, higher = worse), or inf if predicted_ref is None or not an integer
+        Absolute error (0.0 = perfect, higher = worse), or inf if prediction failed
     """
+    # Handle "n/a" ground truth: only "n/a" prediction is correct
+    if isinstance(ground_truth_ref, str) and ground_truth_ref.lower() == "n/a":
+        if isinstance(predicted_ref, str) and predicted_ref.lower() == "n/a":
+            return 0.0  # Perfect match: both "n/a"
+        else:
+            return float('inf')  # Wrong: should predict "n/a" but didn't
+
+    # Handle "n/a" prediction with numeric ground truth
+    if isinstance(predicted_ref, str) and predicted_ref.lower() == "n/a":
+        return float('inf')  # Wrong: predicted "n/a" but ground truth is numeric
+
     if predicted_ref is None:
         return float('inf')
 

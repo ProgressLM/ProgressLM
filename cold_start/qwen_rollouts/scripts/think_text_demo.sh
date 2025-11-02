@@ -22,24 +22,24 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-32B-Instruct"
+MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration
 # DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
 
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_franka_3rgb_sft.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/edited_nega_text_sft.jsonl"
 
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/text_think/franka"
+OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/nega_text/think"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-OUTPUT_FILE="${OUTPUT_DIR}/text_demo_results_${TIMESTAMP}.jsonl"
+OUTPUT_FILE="${OUTPUT_DIR}/text_nega_think_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/text_demo_${TIMESTAMP}.log"
 
 # GPU configuration
-GPU_IDS="0,1"  # Comma-separated GPU IDs to use
-BATCH_SIZE=2  # Batch size per GPU (can be higher since only 1 image per sample)
+GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
+BATCH_SIZE=5  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

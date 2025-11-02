@@ -32,7 +32,8 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"  # UPDATE THIS
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/new_text_negative_sft_raw.jsonl"  # UPDATE THIS
+# DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/new_text_negative_sft_raw.jsonl"  # UPDATE THIS
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/rl_text_clean_other_2.jsonl"  # UPDATE THIS
 IMAGE_ROOT="/projects/p32958/chengxuan/ProgressLM/data/images"  # OPTIONAL - set to empty string "" for text-only mode
 
 # Output configuration
@@ -43,7 +44,7 @@ LOG_FILE="${OUTPUT_DIR}/text_object_replacement_72b_${TIMESTAMP}.log"
 
 # GPU configuration - Use all 4 GPUs for model parallelism
 GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
-BATCH_SIZE=24  # Small batch size for 72B model (increase if memory allows)
+BATCH_SIZE=40  # Small batch size for 72B model (increase if memory allows)
 
 
 # Inference configuration

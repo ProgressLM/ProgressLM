@@ -10,6 +10,6 @@
 # wget --header="Authorization: Bearer $HF_TOKEN" \
 #     https://huggingface.co/datasets/Raymond-Qiancx/COCO/resolve/main/images/h5_tienkung_xsens_1rgb.tar.gz
 
-for f in /home/vcj9002/jianshu/chengxuan/Data/robomind/data/ProgressLM/images/*.tar.gz; do
-    tar -xzf "$f" -C /home/vcj9002/jianshu/chengxuan/Data/robomind/data/ProgressLM/images
+for f in /projects/p32958/chengxuan/ProgressLM/data/images/*.tar.gz; do
+    tar -xzf "$f" -C /projects/p32958/chengxuan/ProgressLM/data/images
 done
