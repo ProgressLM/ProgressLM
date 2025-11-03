@@ -403,7 +403,7 @@ class MultiCameraVerifier:
 def main():
     """主函数"""
     # 配置路径
-    JSONL_PATH = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_h5_franka_3rgb_sft_clean.jsonl"
+    JSONL_PATH = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_franka_3rgb_new_sft.jsonl"
     BASE_IMAGE_DIR = "/home/vcj9002/jianshu/chengxuan/Data/robomind/data/3rgb"
     OUTPUT_DIR = Path("/home/vcj9002/jianshu/chengxuan/ProgressLM/data/utils_img/sft_manage")
 
