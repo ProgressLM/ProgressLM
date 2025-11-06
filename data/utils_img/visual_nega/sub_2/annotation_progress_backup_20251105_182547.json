@@ -1,5 +1,5 @@
 {
-  "current_index": 796,
+  "current_index": 789,
   "annotations": {
     "0": false,
     "1": false,
@@ -790,13 +790,6 @@
     "786": false,
     "787": true,
     "788": false,
-    "789": false,
-    "790": true,
-    "791": true,
-    "792": true,
-    "793": true,
-    "794": false,
-    "795": true,
-    "796": false
+    "789": true
   }
 }
