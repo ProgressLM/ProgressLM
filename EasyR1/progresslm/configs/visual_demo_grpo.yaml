@@ -1,6 +1,6 @@
 data:
-  train_files: /projects/b1222/userdata/jianshu/code/EasyR1/progresslm/data_preprocess/rl_sampled_35k_easyr1.jsonl
-  val_files: /projects/b1222/userdata/jianshu/code/EasyR1/progresslm/data_preprocess/rl_sampled_35k_easyr1.jsonl
+  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final.jsonl
+  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final.jsonl
   prompt_key: user_prompt
   answer_key: answer
   image_key: images
@@ -64,7 +64,7 @@ worker:
 
   rollout:
     n: 4
-    temperature: 0.8
+    temperature: 0.6
     top_p: 0.9
     limit_images: 20
     gpu_memory_utilization: 0.85
@@ -104,8 +104,8 @@ trainer:
   val_before_train: false
   val_only: false
   val_generations_to_log: 2
-  save_freq: 50
-  save_limit: 2
+  save_freq: 20
+  save_limit: 3
   save_model_only: false
   save_checkpoint_path: null
   load_checkpoint_path: null

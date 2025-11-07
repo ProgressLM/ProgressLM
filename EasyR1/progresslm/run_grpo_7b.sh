@@ -5,14 +5,15 @@ set -x
 
 # ===== 🟢 路径设置 =====
 # 7B 模型路径需要比 3B 更小的 batch 配置
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/qwen25vl_7b_sft"
+MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
 
 # 自动生成时间戳
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
 
 # ===== 🟢 wandb 设置 =====
-export WANDB_API_KEY="a055c70d645ef2b98309254662429133b73ac639"
-export WANDB_PROJECT="progresslm_grpo"
+# export WANDB_API_KEY="a055c70d645ef2b98309254662429133b73ac639"
+export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
+export WANDB_PROJECT="progresslm_grpo_7b"
 export WANDB_RUN_GROUP="qwen2_5_vl_7b_progresslm_grpo"
 export WANDB_NAME="visual_demo_qwen2p5vl7b_${TIMESTAMP}"
 export WANDB_MODE="online"
@@ -26,7 +27,7 @@ env | grep WANDB
 
 # ===== 🟢 训练配置 =====
 # 7B 模型显存占用更高，适当减小 batch 相关配置
-CHECKPOINT_DIR="/projects/p32958/chengxuan/models/easyr1_ckpt/newest_35k_7b_${TIMESTAMP}"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_7b_rl/newest_35k_7b_${TIMESTAMP}"
 
 python3 -m verl.trainer.main \
   config=progresslm/configs/visual_demo_grpo.yaml \
