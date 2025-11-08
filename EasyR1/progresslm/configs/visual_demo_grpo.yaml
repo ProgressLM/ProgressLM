@@ -1,14 +1,14 @@
 data:
-  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final_fixed.jsonl
-  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final_fixed.jsonl
+  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_ready_for_training.jsonl
+  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_ready_for_training.jsonl
   prompt_key: user_prompt
   answer_key: answer
   image_key: images
   video_key: videos
   image_dir: null
   video_fps: 2.0
-  max_prompt_length: 8192
-  max_response_length: 4096
+  max_prompt_length: 20000
+  max_response_length: 8192
   rollout_batch_size: 64
   mini_rollout_batch_size: null
   val_batch_size: 64
@@ -17,9 +17,9 @@ data:
   shuffle: true
   seed: 1
   min_pixels: 262144
-  max_pixels: 4194304
-  filter_overlong_prompts: true
-  filter_overlong_prompts_workers: 8
+  max_pixels: 1003520
+  filter_overlong_prompts: false
+  filter_overlong_prompts_workers: 128
 
 algorithm:
   adv_estimator: grpo
@@ -67,12 +67,12 @@ worker:
     temperature: 0.6
     top_p: 0.9
     limit_images: 20
-    gpu_memory_utilization: 0.85
+    gpu_memory_utilization: 0.80
     enforce_eager: false
     enable_chunked_prefill: false
     tensor_parallel_size: 1
     disable_tqdm: false
-    max_num_batched_tokens: 16384
+    max_num_batched_tokens: 40000
     val_override_config:
       temperature: 0.6
       top_p: 0.95
@@ -84,7 +84,7 @@ worker:
       enable_cpu_offload: true
       enable_rank0_init: true
     offload:
-      offload_params: false
+      offload_params: true
       offload_optimizer: true
 
   reward:

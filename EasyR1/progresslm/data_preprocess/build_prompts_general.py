@@ -203,33 +203,55 @@ def build_answer_payload(
     *,
     dataset_type: DatasetType,
 ) -> Dict[str, Any]:
-    progress_fraction = float(item.get("progress_score"))
-    progress_percent = round(progress_fraction * 100)
-    progress_score_str = f"{progress_percent}%"
-
-    closest_idx = int(item.get("closest_idx"))
+    progress_score = item.get("progress_score")
+    closest_idx = item.get("closest_idx")
     delta = item.get("delta")
     demo_key = "visual_demo" if dataset_type == "visual" else "text_demo"
     demo_count = len(item.get(demo_key, []))
 
+    # Handle "n/a" cases
+    if progress_score == "n/a" or closest_idx == "n/a":
+        canonical_response = (
+            "<ref_think>This is an abnormal situation where the current state does not match "
+            "the task goal or visual demonstration, or the operation has failed.</ref_think>\n"
+            "<ref>n/a</ref>\n"
+            "<score_think>Cannot provide valid progress estimation due to abnormal situation.</score_think>\n"
+            "<score>n/a</score>"
+        )
+        return {
+            "ref": "n/a",
+            "score_fraction": "n/a",
+            "score_percent": "n/a",
+            "score_text": "n/a",
+            "demo_count": demo_count,
+            "delta": delta if (delta and delta != "n/a") else "n/a",  # Handle None/empty/n/a
+            "target_response": canonical_response,
+        }
+
+    # Normal case with valid scores
+    progress_fraction = float(progress_score)
+    progress_percent = round(progress_fraction * 100)
+    progress_score_str = f"{progress_percent}%"
+    closest_idx_int = int(closest_idx)
+
     canonical_response = (
         "<ref_think>Reasoning traces are not available in the source annotations; "
         "use the provided reference step as guidance.</ref_think>\n"
-        f"<ref>{closest_idx}</ref>\n"
+        f"<ref>{closest_idx_int}</ref>\n"
         f"<score_think>Ground-truth progress label is {progress_score_str}"
     )
-    if delta is not None:
+    if delta is not None and delta != "n/a":
         canonical_response += f" (delta {delta})"
     canonical_response += ".</score_think>\n"
     canonical_response += f"<score>{progress_score_str}</score>"
 
     return {
-        "ref": closest_idx,
-        "score_fraction": progress_fraction,
-        "score_percent": progress_percent,
+        "ref": str(closest_idx_int),  # Convert to string for PyArrow compatibility
+        "score_fraction": str(progress_fraction),  # Convert to string for PyArrow compatibility
+        "score_percent": str(progress_percent),  # Convert to string for PyArrow compatibility
         "score_text": progress_score_str,
         "demo_count": demo_count,
-        "delta": delta,
+        "delta": delta if delta else "n/a",  # Handle None/empty delta
         "target_response": canonical_response,
     }
 
@@ -277,17 +299,22 @@ def _normalize_visual_item(
         print(f"Warning: Line {line_num} has invalid total_steps (must be integer), skipping")
         return None
 
-    try:
-        closest_idx = int(raw_item["closest_idx"])
-        if not (1 <= closest_idx <= total_steps + 1):
-            print(
-                f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), "
-                f"must be 1-{total_steps + 1}, skipping"
-            )
+    # Allow closest_idx to be "n/a" or an integer
+    closest_idx_raw = raw_item["closest_idx"]
+    if closest_idx_raw == "n/a":
+        closest_idx = "n/a"
+    else:
+        try:
+            closest_idx = int(closest_idx_raw)
+            if not (1 <= closest_idx <= total_steps + 1):
+                print(
+                    f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), "
+                    f"must be 1-{total_steps + 1} or 'n/a', skipping"
+                )
+                return None
+        except (TypeError, ValueError):
+            print(f"Warning: Line {line_num} has invalid closest_idx (must be integer or 'n/a'), skipping")
             return None
-    except (TypeError, ValueError):
-        print(f"Warning: Line {line_num} has invalid closest_idx (must be integer), skipping")
-        return None
 
     stage_to_estimate = raw_item["stage_to_estimate"]
     if isinstance(stage_to_estimate, list) and len(stage_to_estimate) == 1:
@@ -299,14 +326,19 @@ def _normalize_visual_item(
         )
         return None
 
-    try:
-        progress_score = parse_percentage(raw_item["progress_score"])
-    except (TypeError, ValueError) as exc:
-        print(
-            f"Warning: Line {line_num} has invalid progress_score "
-            f"({raw_item.get('progress_score')}): {exc}, skipping"
-        )
-        return None
+    # Allow progress_score to be "n/a" or a percentage
+    progress_score_raw = raw_item["progress_score"]
+    if progress_score_raw == "n/a":
+        progress_score = "n/a"
+    else:
+        try:
+            progress_score = parse_percentage(progress_score_raw)
+        except (TypeError, ValueError) as exc:
+            print(
+                f"Warning: Line {line_num} has invalid progress_score "
+                f"({raw_item.get('progress_score')}): {exc}, skipping"
+            )
+            return None
 
     normalized = dict(raw_item)
     normalized["total_steps"] = total_steps
@@ -373,17 +405,22 @@ def _normalize_text_item(
         print(f"Warning: Line {line_num} has invalid total_steps (must be integer), skipping")
         return None
 
-    try:
-        closest_idx = int(raw_item["closest_idx"])
-        if not (1 <= closest_idx <= len(text_demo)):
-            print(
-                f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), "
-                f"must be 1-{len(text_demo)}, skipping"
-            )
+    # Allow closest_idx to be "n/a" or an integer
+    closest_idx_raw = raw_item["closest_idx"]
+    if closest_idx_raw == "n/a":
+        closest_idx = "n/a"
+    else:
+        try:
+            closest_idx = int(closest_idx_raw)
+            if not (1 <= closest_idx <= len(text_demo)):
+                print(
+                    f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), "
+                    f"must be 1-{len(text_demo)} or 'n/a', skipping"
+                )
+                return None
+        except (TypeError, ValueError):
+            print(f"Warning: Line {line_num} has invalid closest_idx (must be integer or 'n/a'), skipping")
             return None
-    except (TypeError, ValueError):
-        print(f"Warning: Line {line_num} has invalid closest_idx (must be integer), skipping")
-        return None
 
     stage_to_estimate = raw_item["stage_to_estimate"]
     if isinstance(stage_to_estimate, list) and len(stage_to_estimate) == 1:
@@ -395,14 +432,19 @@ def _normalize_text_item(
         )
         return None
 
-    try:
-        progress_score = parse_percentage(raw_item["progress_score"])
-    except (TypeError, ValueError) as exc:
-        print(
-            f"Warning: Line {line_num} has invalid progress_score "
-            f"({raw_item.get('progress_score')}): {exc}, skipping"
-        )
-        return None
+    # Allow progress_score to be "n/a" or a percentage
+    progress_score_raw = raw_item["progress_score"]
+    if progress_score_raw == "n/a":
+        progress_score = "n/a"
+    else:
+        try:
+            progress_score = parse_percentage(progress_score_raw)
+        except (TypeError, ValueError) as exc:
+            print(
+                f"Warning: Line {line_num} has invalid progress_score "
+                f"({raw_item.get('progress_score')}): {exc}, skipping"
+            )
+            return None
 
     normalized = dict(raw_item)
     normalized["total_steps"] = total_steps
@@ -570,9 +612,14 @@ def main() -> None:
 
             answer = build_answer_payload(item, dataset_type=record_type)
 
+            # Convert metadata values to strings for PyArrow compatibility
+            closest_idx_val = item.get("closest_idx")
+            progress_score_val = item.get("progress_score")
+            delta_val = item.get("delta")
+
             metadata: Dict[str, Any] = {
-                "closest_idx": item.get("closest_idx"),
-                "progress_score": item.get("progress_score"),
+                "closest_idx": str(closest_idx_val) if closest_idx_val is not None else "n/a",
+                "progress_score": str(progress_score_val) if progress_score_val is not None else "n/a",
                 "stage_to_estimate": item.get("stage_to_estimate"),
                 "dataset_type": record_type,
             }
@@ -580,7 +627,7 @@ def main() -> None:
                 metadata["text_demo"] = item.get("text_demo")
             else:
                 metadata["visual_demo"] = item.get("visual_demo")
-                metadata["delta"] = item.get("delta")
+                metadata["delta"] = str(delta_val) if delta_val else "n/a"
 
             resolved_image_paths = _resolve_image_list(
                 args.image_root, item["id"], image_paths
