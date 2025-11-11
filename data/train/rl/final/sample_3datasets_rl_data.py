@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Stratified trajectory sampling for RL training data from 3 datasets.
-Samples 5k and 10k records from 30k while maintaining:
+Stratified trajectory sampling for RL training data.
+Supports sampling from 3 or 5 datasets with different targets (5k, 10k, 20k).
+Maintains:
 - Trajectory integrity (same trajectory_id kept together)
 - File proportions
 - Action type balance
@@ -20,23 +21,39 @@ random.seed(42)
 BASE_DIR = Path("/gpfs/projects/p32958/chengxuan/ProgressLM/data/train/rl/final/raw")
 OUTPUT_DIR = BASE_DIR.parent
 
-# Dataset statistics (total: 30,256 records)
+# Dataset statistics for 3 positive datasets (total: 30,256 records)
 # visual_16k_normal_view_rl.jsonl: 16,068 (53.1%)
 # visual_franka_cross_camera_ref_rl.jsonl: 7,887 (26.1%)
 # text_positive_6500_rl.jsonl: 6,301 (20.8%)
 
-# Configuration for 5k sampling
+# Dataset statistics for all 5 datasets (total: 32,929 records)
+# visual_16k_normal_view_rl.jsonl: 16,068 (48.79%)
+# visual_franka_cross_camera_ref_rl.jsonl: 7,887 (23.95%)
+# text_positive_6500_rl.jsonl: 6,301 (19.13%)
+# text_nega_rl.jsonl: 2,129 (6.47%)
+# edited_visual_transfer_raw_rl.jsonl: 544 (1.65%)
+
+# Configuration for 5k sampling (3 datasets)
 FILES_5K = [
     ("visual_16k_normal_view_rl.jsonl", 16068, 2655),  # (filename, original_count, target_count)
     ("visual_franka_cross_camera_ref_rl.jsonl", 7887, 1305),
     ("text_positive_6500_rl.jsonl", 6301, 1040),
 ]
 
-# Configuration for 10k sampling
+# Configuration for 10k sampling (3 datasets)
 FILES_10K = [
     ("visual_16k_normal_view_rl.jsonl", 16068, 5310),
     ("visual_franka_cross_camera_ref_rl.jsonl", 7887, 2610),
     ("text_positive_6500_rl.jsonl", 6301, 2080),
+]
+
+# Configuration for 20k sampling (5 datasets)
+FILES_20K = [
+    ("visual_16k_normal_view_rl.jsonl", 16068, 9758),
+    ("visual_franka_cross_camera_ref_rl.jsonl", 7887, 4790),
+    ("text_positive_6500_rl.jsonl", 6301, 3826),
+    ("text_nega_rl.jsonl", 2129, 1294),
+    ("edited_visual_transfer_raw_rl.jsonl", 544, 330),
 ]
 
 
@@ -126,7 +143,7 @@ def stratified_sample_trajectories(
     return sampled_records, action_type_actual
 
 
-def process_sampling(files_config: List[Tuple[str, int, int]], target_total: int, suffix: str):
+def process_sampling(files_config: List[Tuple[str, int, int]], target_total: int, suffix: str, prefix: str = "positive"):
     """
     Process sampling for a given configuration.
 
@@ -134,9 +151,10 @@ def process_sampling(files_config: List[Tuple[str, int, int]], target_total: int
         files_config: List of (filename, original_count, target_count) tuples
         target_total: Target total number of records
         suffix: Suffix for output files (e.g., "5k" or "10k")
+        prefix: Prefix for output files (e.g., "positive" or "candidate")
     """
-    output_file = OUTPUT_DIR / f"positive_rl_data_{suffix}.jsonl"
-    report_file = OUTPUT_DIR / f"positive_sampling_report_{suffix}.txt"
+    output_file = OUTPUT_DIR / f"{prefix}_rl_data_{suffix}.jsonl"
+    report_file = OUTPUT_DIR / f"{prefix}_sampling_report_{suffix}.txt"
 
     print("=" * 80)
     print(f"RL Data Stratified Trajectory Sampling - {suffix.upper()}")
@@ -261,26 +279,21 @@ def process_sampling(files_config: List[Tuple[str, int, int]], target_total: int
 
 
 def main():
-    """Main function to run both 5k and 10k sampling."""
+    """Main function to run 20k sampling from 5 datasets."""
     print("\n" + "=" * 80)
-    print("Starting RL Data Sampling from 3 Datasets")
-    print("Total records: 30,256")
+    print("Starting RL Data Sampling from 5 Datasets")
+    print("Total records: 32,929")
     print("=" * 80)
     print()
 
-    # Process 5k sampling
-    process_sampling(FILES_5K, 5000, "5k")
-
-    print("\n" * 3)
-
-    # Reset random seed for 10k sampling
+    # Reset random seed
     random.seed(42)
 
-    # Process 10k sampling
-    process_sampling(FILES_10K, 10000, "10k")
+    # Process 20k sampling
+    process_sampling(FILES_20K, 20000, "20k", prefix="candidate")
 
     print("\n" + "=" * 80)
-    print("All sampling completed!")
+    print("Sampling completed!")
     print("=" * 80)
     print()
 
