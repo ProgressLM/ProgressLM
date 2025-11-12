@@ -31,7 +31,7 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/rl/final/candidat
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/candidate/f1"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/candidate/visual_f1"
 
 
 PROJECT_NAME="visual_filter_7B_SFT"
@@ -42,7 +42,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=8  # Batch size per GPU (adjust based on VRAM and image count)
+BATCH_SIZE=10  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

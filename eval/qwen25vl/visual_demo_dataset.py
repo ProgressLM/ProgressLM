@@ -3,7 +3,7 @@ import json
 from typing import Dict, Any, List, Tuple, Union
 
 
-def parse_percentage(score_str: Union[str, int, float]) -> float:
+def parse_percentage(score_str: Union[str, int, float]) -> Union[float, None]:
     """
     Convert percentage string or numeric value to 0.0-1.0 range.
 
@@ -12,13 +12,21 @@ def parse_percentage(score_str: Union[str, int, float]) -> float:
         "100%" -> 1.0
         0.33 -> 0.33
         33 -> 0.33 (assumed to be percentage)
+        "n/a" -> None
+        "N/A" -> None
 
     Args:
-        score_str: Progress score as string (with/without %), int, or float
+        score_str: Progress score as string (with/without %), int, or float, or "n/a"
 
     Returns:
-        Float value in [0.0, 1.0] range
+        Float value in [0.0, 1.0] range, or None if "n/a"
     """
+    # Handle "n/a" case
+    if isinstance(score_str, str):
+        score_str_stripped = score_str.strip().lower()
+        if score_str_stripped in ["n/a", "na"]:
+            return None
+
     if isinstance(score_str, (int, float)):
         # If numeric value > 1.0, assume it's percentage form (e.g., 33 means 33%)
         if score_str > 1.0:
@@ -113,16 +121,21 @@ def load_visual_demo_dataset(
                     print(f"Warning: Line {line_num} has invalid total_steps (must be integer), skipping")
                     continue
 
-                # Validate closest_idx (1-based, must be in range [1, total_steps+1])
-                try:
-                    closest_idx = int(item['closest_idx'])
-                    if not (1 <= closest_idx <= total_steps + 1):
-                        print(f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), must be 1-{total_steps+1}, skipping")
+                # Validate closest_idx (1-based, must be in range [1, total_steps+1], or "n/a")
+                closest_idx_raw = item['closest_idx']
+                if isinstance(closest_idx_raw, str) and closest_idx_raw.strip().lower() in ["n/a", "na"]:
+                    # Allow "n/a" as valid value
+                    item['closest_idx'] = None
+                else:
+                    try:
+                        closest_idx = int(closest_idx_raw)
+                        if not (1 <= closest_idx <= total_steps + 1):
+                            print(f"Warning: Line {line_num} has invalid closest_idx ({closest_idx}), must be 1-{total_steps+1}, skipping")
+                            continue
+                        item['closest_idx'] = closest_idx
+                    except (ValueError, TypeError):
+                        print(f"Warning: Line {line_num} has invalid closest_idx (must be integer or 'n/a'), skipping")
                         continue
-                    item['closest_idx'] = closest_idx
-                except (ValueError, TypeError):
-                    print(f"Warning: Line {line_num} has invalid closest_idx (must be integer), skipping")
-                    continue
 
                 # Normalize stage_to_estimate to string format
                 if isinstance(item['stage_to_estimate'], str):
@@ -135,9 +148,10 @@ def load_visual_demo_dataset(
 
                 item['stage_to_estimate'] = stage_img
 
-                # Validate and convert progress_score (supports "33%" or 0.33)
+                # Validate and convert progress_score (supports "33%", 0.33, or "n/a")
                 try:
-                    item['progress_score'] = parse_percentage(item['progress_score'])
+                    parsed_score = parse_percentage(item['progress_score'])
+                    item['progress_score'] = parsed_score  # Can be float or None
                 except (ValueError, TypeError) as e:
                     print(f"Warning: Line {line_num} has invalid progress_score ({item.get('progress_score')}): {e}, skipping")
                     continue

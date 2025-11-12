@@ -27,11 +27,11 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/visual_demo/visual_franka_cross_camera_augmented_sft.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/rl/final/raw/edited_visual_transfer_raw_rl.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/new_extracted_images/images"  # Optional: root directory for relative image paths
 
 # Output configuration
-OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/cold_data/visual_3rgb_sft"
+OUTPUT_DIR="/projects/p32958/chengxuan/results/nega_edit_think_new"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/visual_demo_72b_results_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/visual_demo_72b_${TIMESTAMP}.log"

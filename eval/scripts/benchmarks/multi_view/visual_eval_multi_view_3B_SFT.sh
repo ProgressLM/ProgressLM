@@ -26,12 +26,14 @@
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
 MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
 
+# MODEL_PATH="/projects/p32958/Results/full_model/edit_qwen25vl_3b_sft"
+
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_franka_multi_view_3k.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/sft_35k_3b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/sft_35k_3b_edit"
 
 
 PROJECT_NAME="visual_multi_view_rl_3B"

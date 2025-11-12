@@ -26,14 +26,12 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration
-# DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_raw.jsonl"
 
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/final_edited_nega_text_sft.jsonl"
-
-IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
+IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/nega_text/think_72B"
+OUTPUT_DIR="/projects/p32958/chengxuan/results/nega_think_new/think"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/text_nega_think_72b_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/text_demo_72b_${TIMESTAMP}.log"

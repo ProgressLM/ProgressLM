@@ -5,11 +5,13 @@ import argparse
 import time
 import re
 from tqdm import tqdm
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import torch
 import traceback
 import multiprocessing as mp
 from multiprocessing import Manager, Process, Queue
+from scipy.stats import spearmanr
+import numpy as np
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -57,43 +59,51 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
         if ref_think_match:
             result['ref_think'] = ref_think_match.group(1).strip()
 
-        # Extract ref (now expects integer 1-based index)
+        # Extract ref (now expects integer 1-based index or "n/a")
         ref_match = re.search(r'<ref>(.*?)</ref>', response, re.DOTALL)
         if ref_match:
             ref_str = ref_match.group(1).strip()
-            try:
-                # Extract just the number (handle "No. 2", "2", "image 2", etc.)
-                ref_num = re.search(r'\d+', ref_str)
-                if ref_num:
-                    result['ref'] = int(ref_num.group())
-                else:
-                    result['ref'] = ref_str  # Keep original if no number found
-            except (ValueError, AttributeError):
-                result['ref'] = ref_str
+            # Check for "n/a" first
+            if ref_str.lower() in ["n/a", "na"]:
+                result['ref'] = "n/a"
+            else:
+                try:
+                    # Extract just the number (handle "No. 2", "2", "image 2", etc.)
+                    ref_num = re.search(r'\d+', ref_str)
+                    if ref_num:
+                        result['ref'] = int(ref_num.group())
+                    else:
+                        result['ref'] = ref_str  # Keep original if no number found
+                except (ValueError, AttributeError):
+                    result['ref'] = ref_str
 
         # Extract score_think
         score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
         if score_think_match:
             result['score_think'] = score_think_match.group(1).strip()
 
-        # Extract score (supports both "8%" and "0.08")
+        # Extract score (supports "8%", "0.08", or "n/a")
         score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
         if score_match:
             score_str = score_match.group(1).strip()
-            try:
-                # Remove % sign if present
-                if score_str.endswith('%'):
-                    score_value = float(score_str[:-1]) / 100.0
-                else:
-                    score_value = float(score_str)
-                    # If > 1.0, assume it's percentage without % sign
-                    if score_value > 1.0:
-                        score_value = score_value / 100.0
+            # Check for "n/a" first
+            if score_str.lower() in ["n/a", "na"]:
+                result['score'] = "n/a"
+            else:
+                try:
+                    # Remove % sign if present
+                    if score_str.endswith('%'):
+                        score_value = float(score_str[:-1]) / 100.0
+                    else:
+                        score_value = float(score_str)
+                        # If > 1.0, assume it's percentage without % sign
+                        if score_value > 1.0:
+                            score_value = score_value / 100.0
 
-                # Clamp to [0, 1]
-                result['score'] = max(0.0, min(1.0, score_value))
-            except ValueError:
-                result['parse_error'] = True
+                    # Clamp to [0, 1]
+                    result['score'] = max(0.0, min(1.0, score_value))
+                except ValueError:
+                    result['parse_error'] = True
         else:
             result['parse_error'] = True
 
@@ -155,6 +165,138 @@ def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> 
     return float(absolute_error)
 
 
+def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) -> Tuple[bool, bool]:
+    """
+    Calculate false positive rates for ref and score.
+
+    False positive occurs when:
+    - GT is numeric but prediction is "n/a"
+    - GT is "n/a" but prediction is numeric
+
+    Correct cases:
+    - Both GT and prediction are "n/a"
+    - Both GT and prediction are numeric (use error calculation instead)
+
+    Args:
+        predicted_ref: Predicted ref (int, "n/a", or invalid)
+        predicted_score: Predicted score (float, "n/a", or invalid)
+        gt_ref: Ground truth ref (int or None)
+        gt_score: Ground truth score (float or None)
+
+    Returns:
+        (is_ref_false_positive, is_score_false_positive)
+    """
+    # Check ref false positive
+    gt_ref_is_na = (gt_ref is None)
+    pred_ref_is_na = (predicted_ref == "n/a" or predicted_ref == "" or not isinstance(predicted_ref, int))
+
+    # False positive: mismatch between GT and prediction
+    ref_fp = gt_ref_is_na != pred_ref_is_na
+
+    # Check score false positive
+    gt_score_is_na = (gt_score is None)
+    pred_score_is_na = (predicted_score == "n/a" or predicted_score is None or not isinstance(predicted_score, (int, float)))
+
+    # False positive: mismatch between GT and prediction
+    score_fp = gt_score_is_na != pred_score_is_na
+
+    return ref_fp, score_fp
+
+
+def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Calculate VOC (trajectory order consistency) using Spearman correlation.
+
+    Process:
+    1. Group samples by complete trajectory ID
+    2. Filter: only keep trajectories where GT closest_idx and progress_score are both numeric
+    3. For each trajectory:
+       - Sort by GT progress_score to get true order
+       - Sort by predicted score (n/a → 0.0) to get predicted order
+       - Calculate Spearman correlation between rankings
+       - Single-sample trajectories → VOC = None
+    4. Return mean and std of all valid VOCs
+
+    Args:
+        results: List of result dictionaries with meta_data containing id, closest_idx, progress_score
+
+    Returns:
+        Dictionary with VOC statistics:
+        {
+            'voc_mean': float or None,
+            'voc_std': float or None,
+            'voc_count': int,  # number of trajectories with VOC
+            'voc_values': List[float]  # individual VOC values
+        }
+    """
+    from collections import defaultdict
+
+    # Group by trajectory ID
+    trajectories = defaultdict(list)
+    for res in results:
+        meta = res.get('meta_data', {})
+        traj_id = meta.get('id', '')
+
+        # Only include if GT has numeric values
+        gt_ref = meta.get('closest_idx')
+        gt_score = meta.get('progress_score')
+
+        if gt_ref is not None and gt_score is not None:
+            # GT is numeric
+            pred_score = res.get('score')
+            # Convert n/a to 0.0 for ranking
+            if pred_score == "n/a" or pred_score is None:
+                pred_score_numeric = 0.0
+            else:
+                pred_score_numeric = float(pred_score) if isinstance(pred_score, (int, float)) else 0.0
+
+            trajectories[traj_id].append({
+                'gt_score': gt_score,
+                'pred_score': pred_score_numeric,
+                'result': res
+            })
+
+    # Calculate VOC for each trajectory
+    voc_values = []
+    for traj_id, samples in trajectories.items():
+        if len(samples) <= 1:
+            # Cannot calculate correlation for single sample
+            continue
+
+        # Sort by GT score to get true ranking
+        samples_sorted_by_gt = sorted(samples, key=lambda x: x['gt_score'])
+        true_order = list(range(len(samples_sorted_by_gt)))
+
+        # Sort by predicted score to get predicted ranking
+        samples_sorted_by_pred = sorted(samples, key=lambda x: x['pred_score'])
+
+        # Map each sample to its predicted rank
+        pred_rank_map = {id(s['result']): rank for rank, s in enumerate(samples_sorted_by_pred)}
+        pred_order = [pred_rank_map[id(s['result'])] for s in samples_sorted_by_gt]
+
+        # Calculate Spearman correlation
+        if len(set(true_order)) > 1 and len(set(pred_order)) > 1:
+            correlation, _ = spearmanr(true_order, pred_order)
+            if not np.isnan(correlation):
+                voc_values.append(correlation)
+
+    # Calculate statistics
+    if len(voc_values) > 0:
+        return {
+            'voc_mean': float(np.mean(voc_values)),
+            'voc_std': float(np.std(voc_values)),
+            'voc_count': len(voc_values),
+            'voc_values': voc_values
+        }
+    else:
+        return {
+            'voc_mean': None,
+            'voc_std': None,
+            'voc_count': 0,
+            'voc_values': []
+        }
+
+
 def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, result_queue: Queue):
     """Worker process for one GPU with batch inference."""
 
@@ -199,22 +341,29 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                     is_valid, error_msg = validate_image_paths(item)
                     if not is_valid:
                         # Skip this item, record error
-                        ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
+                        gt_score = item.get('progress_score')
+                        if gt_score is not None:
+                            ground_truth_score_str = f"{int(gt_score * 100)}%"
+                        else:
+                            ground_truth_score_str = "n/a"
+
                         result = {
                             "ref": None,
                             "score": None,
-                            "closest_idx": str(item['closest_idx']),
+                            "closest_idx": item.get('closest_idx'),
                             "ground_truth_score": ground_truth_score_str,
+                            "ref_score": float('inf'),
+                            "pred_score": float('inf'),
+                            "ref_false_positive": False,
+                            "score_false_positive": False,
                             "response": f"Validation error: {error_msg}",
                             "meta_data": {
-                                "id": item['id'],
-                                "task_goal": item.get('task_goal', ''),
-                                "stage_to_estimate": item.get('stage_to_estimate', ''),
+                                **item,  # Include all original data
                                 "status": "failed"
                             }
                         }
                         results.append(result)
-                        progress_queue.put((1, float('inf'), float('inf'), 1))  # (processed, score, ref_error, error)
+                        progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))  # (processed, score, ref_error, ref_fp, score_fp, error)
                         continue
 
                     messages = build_visual_demo_prompt_from_item(
@@ -242,80 +391,120 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         predicted_ref = parsed['ref']
                         has_error = parsed['parse_error']
 
-                        # Calculate evaluation score for progress
-                        evaluation_score = calculate_evaluation_score(
-                            predicted_score,
-                            item['progress_score']
+                        # Get ground truth values
+                        gt_score = item['progress_score']  # Can be float or None
+                        gt_ref = item['closest_idx']  # Can be int or None
+
+                        # Calculate false positives
+                        ref_fp, score_fp = calculate_false_positives(
+                            predicted_ref, predicted_score, gt_ref, gt_score
                         )
 
-                        # Calculate reference index error
-                        ref_error = calculate_ref_error(
-                            predicted_ref,
-                            item['closest_idx']
-                        )
+                        # Calculate evaluation score for progress (only for numeric pairs)
+                        if gt_score is not None and isinstance(predicted_score, (int, float)):
+                            evaluation_score = calculate_evaluation_score(predicted_score, gt_score)
+                        else:
+                            evaluation_score = float('inf')
 
-                        # Convert scores back to percentage strings
-                        predicted_score_str = f"{int(predicted_score * 100)}%" if predicted_score is not None else None
-                        ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
-                        predicted_ref_str = str(predicted_ref) if predicted_ref is not None else None
+                        # Calculate reference index error (only for numeric pairs)
+                        if gt_ref is not None and isinstance(predicted_ref, int):
+                            ref_error = calculate_ref_error(predicted_ref, gt_ref)
+                        else:
+                            ref_error = float('inf')
+
+                        # Convert scores back to strings for output
+                        if predicted_score == "n/a":
+                            predicted_score_str = "n/a"
+                        elif isinstance(predicted_score, (int, float)):
+                            predicted_score_str = f"{int(predicted_score * 100)}%"
+                        else:
+                            predicted_score_str = None
+
+                        if gt_score is not None:
+                            ground_truth_score_str = f"{int(gt_score * 100)}%"
+                        else:
+                            ground_truth_score_str = "n/a"
+
+                        if predicted_ref == "n/a":
+                            predicted_ref_str = "n/a"
+                        elif isinstance(predicted_ref, int):
+                            predicted_ref_str = str(predicted_ref)
+                        else:
+                            predicted_ref_str = None
 
                         result = {
                             "ref": predicted_ref_str,
                             "score": predicted_score_str,
-                            "closest_idx": str(item['closest_idx']),
+                            "closest_idx": gt_ref,
                             "ground_truth_score": ground_truth_score_str,
+                            "ref_score": evaluation_score,
+                            "pred_score": ref_error,
+                            "ref_false_positive": ref_fp,
+                            "score_false_positive": score_fp,
                             "response": response,
                             "meta_data": {
-                                "id": item['id'],
-                                "task_goal": item.get('task_goal', ''),
-                                "stage_to_estimate": item.get('stage_to_estimate', ''),
+                                **item,  # Include all original data
                                 "status": "failed" if has_error else "success"
                             }
                         }
 
                         results.append(result)
 
-                        # Report progress: (processed_count, score, ref_error, error)
-                        progress_queue.put((1, evaluation_score, ref_error, 1 if has_error else 0))
+                        # Report progress: (processed_count, score_error, ref_error, ref_fp, score_fp, parse_error)
+                        progress_queue.put((1, evaluation_score, ref_error, 1 if ref_fp else 0, 1 if score_fp else 0, 1 if has_error else 0))
 
                     except Exception as e:
                         # Parse error for this specific item
-                        ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
+                        gt_score = item.get('progress_score')
+                        if gt_score is not None:
+                            ground_truth_score_str = f"{int(gt_score * 100)}%"
+                        else:
+                            ground_truth_score_str = "n/a"
+
                         result = {
                             "ref": None,
                             "score": None,
-                            "closest_idx": str(item['closest_idx']),
+                            "closest_idx": item.get('closest_idx'),
                             "ground_truth_score": ground_truth_score_str,
+                            "ref_score": float('inf'),
+                            "pred_score": float('inf'),
+                            "ref_false_positive": False,
+                            "score_false_positive": False,
                             "response": f"Processing error: {str(e)}\nResponse: {response if response else ''}",
                             "meta_data": {
-                                "id": item['id'],
-                                "task_goal": item.get('task_goal', ''),
-                                "stage_to_estimate": item.get('stage_to_estimate', ''),
+                                **item,  # Include all original data
                                 "status": "failed"
                             }
                         }
                         results.append(result)
-                        progress_queue.put((1, float('inf'), float('inf'), 1))
+                        progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
 
             except Exception as e:
                 # Batch error - mark all items in batch as errors
                 for item in batch_items:
-                    ground_truth_score_str = f"{int(item.get('progress_score', 0.0) * 100)}%"
+                    gt_score = item.get('progress_score')
+                    if gt_score is not None:
+                        ground_truth_score_str = f"{int(gt_score * 100)}%"
+                    else:
+                        ground_truth_score_str = "n/a"
+
                     result = {
                         "ref": None,
                         "score": None,
-                        "closest_idx": str(item.get('closest_idx', 0)),
+                        "closest_idx": item.get('closest_idx'),
                         "ground_truth_score": ground_truth_score_str,
+                        "ref_score": float('inf'),
+                        "pred_score": float('inf'),
+                        "ref_false_positive": False,
+                        "score_false_positive": False,
                         "response": f"Batch error: {str(e)}",
                         "meta_data": {
-                            "id": item['id'],
-                            "task_goal": item.get('task_goal', ''),
-                            "stage_to_estimate": item.get('stage_to_estimate', ''),
+                            **item,  # Include all original data
                             "status": "failed"
                         }
                     }
                     results.append(result)
-                    progress_queue.put((1, float('inf'), float('inf'), 1))
+                    progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
 
             # Update processed count
             processed_count += len(batch_items)
@@ -424,9 +613,11 @@ def run_visual_demo_inference(args):
     total_ref_error_sum = 0.0
     valid_count = 0  # Count of non-error samples
     error_count = 0
+    ref_fp_count = 0  # Count of ref false positives
+    score_fp_count = 0  # Count of score false positives
 
     # Use tqdm with fixed width - dynamic single-line update only
-    pbar = tqdm(total=len(data), desc="Progress", ncols=140,
+    pbar = tqdm(total=len(data), desc="Progress", ncols=160,
                 miniters=10, mininterval=2.0, smoothing=0.3, dynamic_ncols=False,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]')
 
@@ -452,10 +643,12 @@ def run_visual_demo_inference(args):
             batch_ref_error_sum = 0.0
             batch_valid_count = 0
             batch_errors = 0
+            batch_ref_fp = 0
+            batch_score_fp = 0
 
             while not progress_queue.empty():
-                # Each progress update: (processed_count, score, ref_error, error)
-                proc_count, score, ref_error, error = progress_queue.get_nowait()
+                # Each progress update: (processed_count, score, ref_error, ref_fp, score_fp, error)
+                proc_count, score, ref_error, ref_fp, score_fp, error = progress_queue.get_nowait()
                 batch_proc_count += proc_count
                 # Only sum finite values
                 if score != float('inf'):
@@ -463,6 +656,8 @@ def run_visual_demo_inference(args):
                 if ref_error != float('inf'):
                     batch_ref_error_sum += ref_error
                 batch_errors += error
+                batch_ref_fp += ref_fp
+                batch_score_fp += score_fp
                 # Only count non-error samples for mean calculation
                 if error == 0:
                     batch_valid_count += proc_count
@@ -474,6 +669,8 @@ def run_visual_demo_inference(args):
                 total_ref_error_sum += batch_ref_error_sum
                 valid_count += batch_valid_count
                 error_count += batch_errors
+                ref_fp_count += batch_ref_fp
+                score_fp_count += batch_score_fp
                 accumulated_updates += batch_proc_count
                 last_progress_time = time.time()  # Reset timeout timer
 
@@ -491,8 +688,9 @@ def run_visual_demo_inference(args):
                 # Only calculate mean from valid (non-error) samples
                 mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
                 mean_ref_error = total_ref_error_sum / valid_count if valid_count > 0 else 0.0
-                error_rate = error_count / total_processed * 100 if total_processed > 0 else 0.0
-                pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}, ErrorRate={error_rate:.1f}%")
+                ref_fp_rate = ref_fp_count / total_processed * 100 if total_processed > 0 else 0.0
+                score_fp_rate = score_fp_count / total_processed * 100 if total_processed > 0 else 0.0
+                pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}, RefFP={ref_fp_rate:.1f}%, ScoreFP={score_fp_rate:.1f}%")
                 accumulated_updates = 0
                 last_update_time = current_time
 
@@ -658,10 +856,31 @@ def run_visual_demo_inference(args):
 
     # Calculate final statistics
     valid_results = [r for r in all_results if r['meta_data']['status'] == 'success']
-    # Use the already calculated mean_score and mean_ref_error from progress tracking
-    mean_score_final = total_score_sum / valid_count if valid_count > 0 else float('inf')
-    mean_ref_error_final = total_ref_error_sum / valid_count if valid_count > 0 else float('inf')
+    # Filter out inf values for mean calculation
+    finite_scores_all = [r.get('ref_score', float('inf')) for r in all_results if r.get('ref_score') != float('inf')]
+    finite_scores_valid = [r.get('ref_score', float('inf')) for r in valid_results if r.get('ref_score') != float('inf')]
+    finite_ref_errors_all = [r.get('pred_score', float('inf')) for r in all_results if r.get('pred_score') != float('inf')]
+    finite_ref_errors_valid = [r.get('pred_score', float('inf')) for r in valid_results if r.get('pred_score') != float('inf')]
+
+    mean_score = sum(finite_scores_all) / len(finite_scores_all) if finite_scores_all else float('inf')
+    mean_score_valid = sum(finite_scores_valid) / len(finite_scores_valid) if finite_scores_valid else float('inf')
+    mean_ref_error = sum(finite_ref_errors_all) / len(finite_ref_errors_all) if finite_ref_errors_all else float('inf')
+    mean_ref_error_valid = sum(finite_ref_errors_valid) / len(finite_ref_errors_valid) if finite_ref_errors_valid else float('inf')
     error_rate = error_count / len(all_results) if all_results else 0.0
+
+    # Calculate false positive rates
+    ref_fp_total = sum(1 for r in all_results if r.get('ref_false_positive', False))
+    score_fp_total = sum(1 for r in all_results if r.get('score_false_positive', False))
+    ref_fp_rate = ref_fp_total / len(all_results) if all_results else 0.0
+    score_fp_rate = score_fp_total / len(all_results) if all_results else 0.0
+
+    # Calculate VOC metrics
+    print("\nCalculating VOC (trajectory order consistency) metrics...")
+    voc_metrics = calculate_voc_metrics(all_results)
+
+    # Count GT type distribution
+    gt_numeric_count = sum(1 for r in all_results if r['meta_data'].get('closest_idx') is not None and r['meta_data'].get('progress_score') is not None)
+    gt_na_count = len(all_results) - gt_numeric_count
 
     # Print final summary
     print("\n" + "=" * 70)
@@ -672,9 +891,25 @@ def run_visual_demo_inference(args):
     print(f"Inferences per sample: {args.num_inferences}")
     print(f"Processed: {len(all_results)}")
     print(f"Errors: {error_count} ({error_rate*100:.2f}%)")
-    print(f"Mean evaluation score: {mean_score_final:.4f}")
-    print(f"Mean ref error: {mean_ref_error_final:.4f}")
-    print(f"Results saved to: {output_file}")
+    print(f"\nError Metrics:")
+    print(f"  Mean evaluation score (all): {mean_score:.4f}")
+    print(f"  Mean evaluation score (valid only): {mean_score_valid:.4f}")
+    print(f"  Mean ref error (all): {mean_ref_error:.4f}")
+    print(f"  Mean ref error (valid only): {mean_ref_error_valid:.4f}")
+    print(f"\nFalse Positive Rates:")
+    print(f"  Ref false positive rate: {ref_fp_rate*100:.2f}% ({ref_fp_total}/{len(all_results)})")
+    print(f"  Score false positive rate: {score_fp_rate*100:.2f}% ({score_fp_total}/{len(all_results)})")
+    print(f"\nVOC (Trajectory Order Consistency):")
+    if voc_metrics['voc_mean'] is not None:
+        print(f"  Mean VOC: {voc_metrics['voc_mean']:.4f}")
+        print(f"  Std VOC: {voc_metrics['voc_std']:.4f}")
+        print(f"  Trajectories evaluated: {voc_metrics['voc_count']}")
+    else:
+        print(f"  VOC: N/A (no valid trajectories)")
+    print(f"\nGT Distribution:")
+    print(f"  Numeric GT: {gt_numeric_count} ({gt_numeric_count/len(all_results)*100:.1f}%)")
+    print(f"  N/A GT: {gt_na_count} ({gt_na_count/len(all_results)*100:.1f}%)")
+    print(f"\nResults saved to: {output_file}")
     print("=" * 70)
 
     # Save summary
@@ -686,8 +921,19 @@ def run_visual_demo_inference(args):
         "processed": len(all_results),
         "errors": error_count,
         "error_rate": error_rate,
-        "mean_evaluation_score": mean_score_final,
-        "mean_ref_error": mean_ref_error_final,
+        "mean_evaluation_score_all": mean_score,
+        "mean_evaluation_score_valid": mean_score_valid,
+        "mean_ref_error_all": mean_ref_error,
+        "mean_ref_error_valid": mean_ref_error_valid,
+        "ref_false_positive_count": ref_fp_total,
+        "score_false_positive_count": score_fp_total,
+        "ref_false_positive_rate": ref_fp_rate,
+        "score_false_positive_rate": score_fp_rate,
+        "voc_mean": voc_metrics['voc_mean'],
+        "voc_std": voc_metrics['voc_std'],
+        "voc_trajectories_count": voc_metrics['voc_count'],
+        "gt_numeric_count": gt_numeric_count,
+        "gt_na_count": gt_na_count,
         "batch_size": args.batch_size,
         "num_gpus": num_gpus,
         "dataset_path": args.dataset_path,

@@ -11,10 +11,10 @@ def restore_progress():
     """从已保存的输出恢复进度"""
 
     # 文件路径
-    original_jsonl = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/edited_raw_all.jsonl"
-    annotated_output = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotated_output.jsonl"
-    stats_file = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotated_output_stats.txt"
-    progress_file = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotation_progress.json"
+    original_jsonl = "/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_2_test/sub_2_labeled.jsonl"
+    annotated_output = "/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_2_test/annotated_output.jsonl"
+    stats_file = "/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_2_test/annotated_output_stats.txt"
+    progress_file = "/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_2_test/annotation_progress.json"
 
     print("=" * 60)
     print("进度恢复脚本")

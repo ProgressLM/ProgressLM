@@ -5,7 +5,7 @@ import argparse
 import time
 import re
 from tqdm import tqdm
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import torch
 
 # Add parent directory to path for imports
@@ -45,6 +45,12 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
     }
 
     try:
+        # Check for "n/a" first
+        response_lower = response.lower().strip()
+        if response_lower in ["n/a", "na"] or "n/a" in response_lower or "na" in response_lower:
+            result['score'] = "n/a"
+            return result
+
         # Try to extract any percentage or decimal number from the response
         # Look for patterns like "75%", "0.75", "75", etc.
 
@@ -105,6 +111,123 @@ def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) 
 
     relative_error = abs(ground_truth - predicted) / ground_truth
     return relative_error
+
+
+def calculate_score_false_positive(predicted_score, gt_score) -> bool:
+    """
+    Calculate false positive for score prediction.
+
+    False positive occurs when:
+    - GT is numeric but prediction is "n/a"
+    - GT is "n/a" but prediction is numeric
+
+    Args:
+        predicted_score: Predicted score (float or "n/a")
+        gt_score: Ground truth score (float or None for n/a)
+
+    Returns:
+        True if false positive, False otherwise
+    """
+    gt_score_is_na = (gt_score is None)
+    pred_score_is_na = (predicted_score == "n/a" or predicted_score is None or not isinstance(predicted_score, (int, float)))
+
+    # False positive: mismatch between GT and prediction
+    score_fp = gt_score_is_na != pred_score_is_na
+
+    return score_fp
+
+
+def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Calculate VOC (Visual Order Consistency) using Spearman rank correlation.
+
+    Groups results by trajectory, computes Spearman correlation between
+    ground truth and predicted rankings within each trajectory (only for numeric GTs).
+
+    Args:
+        results: List of result dictionaries containing meta_data with trajectory_id
+
+    Returns:
+        Dictionary with:
+        - 'voc_mean': Mean Spearman correlation across trajectories
+        - 'voc_std': Standard deviation
+        - 'voc_count': Number of trajectories with enough data
+        - 'voc_values': List of per-trajectory correlations
+    """
+    from collections import defaultdict
+    from scipy.stats import spearmanr
+    import numpy as np
+
+    # Group results by trajectory ID, only include samples with numeric GT
+    trajectories = defaultdict(list)
+
+    for res in results:
+        meta = res.get('meta_data', {})
+
+        # Extract trajectory_id
+        traj_id = meta.get('trajectory_id')
+        if traj_id is None:
+            continue
+
+        # Only include samples with numeric GT
+        gt_score = meta.get('progress_score')
+        if gt_score is None:
+            continue
+
+        # Get predicted score (convert n/a to 0.0 for VOC calculation)
+        pred_score = res.get('score')
+        if pred_score == "n/a" or pred_score is None:
+            pred_score_numeric = 0.0
+        else:
+            pred_score_numeric = float(pred_score)
+
+        trajectories[traj_id].append({
+            'gt_score': gt_score,
+            'pred_score': pred_score_numeric,
+            'result': res
+        })
+
+    # Calculate Spearman correlation for each trajectory with enough samples
+    voc_values = []
+
+    for traj_id, traj_data in trajectories.items():
+        if len(traj_data) < 2:
+            # Need at least 2 points for correlation
+            continue
+
+        # Extract GT and predicted scores
+        gt_scores = [item['gt_score'] for item in traj_data]
+        pred_scores = [item['pred_score'] for item in traj_data]
+
+        # Check if there's variation in GT scores
+        if len(set(gt_scores)) < 2:
+            # All GT scores are the same, correlation is undefined
+            continue
+
+        # Calculate Spearman correlation
+        try:
+            correlation, p_value = spearmanr(gt_scores, pred_scores)
+            if not np.isnan(correlation):
+                voc_values.append(correlation)
+        except Exception as e:
+            # Skip trajectories with calculation errors
+            continue
+
+    # Compute statistics
+    if len(voc_values) > 0:
+        return {
+            'voc_mean': float(np.mean(voc_values)),
+            'voc_std': float(np.std(voc_values)),
+            'voc_count': len(voc_values),
+            'voc_values': voc_values
+        }
+    else:
+        return {
+            'voc_mean': None,
+            'voc_std': None,
+            'voc_count': 0,
+            'voc_values': []
+        }
 
 
 def run_visual_demo_inference_single(args):
@@ -181,9 +304,10 @@ def run_visual_demo_inference_single(args):
     total_score_sum = 0.0
     valid_count = 0
     error_count = 0
+    score_fp_count = 0  # Count of score false positives
 
     # Progress bar
-    pbar = tqdm(total=len(data), desc="Processing", ncols=140,
+    pbar = tqdm(total=len(data), desc="Processing", ncols=160,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]')
 
     i = 0
@@ -201,15 +325,20 @@ def run_visual_demo_inference_single(args):
                 is_valid, error_msg = validate_image_paths(item)
                 if not is_valid:
                     # Skip this item, record error
-                    ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
+                    gt_score = item.get('progress_score')
+                    if gt_score is not None:
+                        ground_truth_score_str = f"{int(gt_score * 100)}%"
+                    else:
+                        ground_truth_score_str = "n/a"
+
                     result = {
                         "score": None,
                         "ground_truth_score": ground_truth_score_str,
+                        "evaluation_score": float('inf'),
+                        "score_false_positive": False,
                         "response": f"Validation error: {error_msg}",
                         "meta_data": {
-                            "id": item['id'],
-                            "task_goal": item.get('task_goal', ''),
-                            "stage_to_estimate": item.get('stage_to_estimate', ''),
+                            **item,  # Include all original data
                             "status": "failed"
                         }
                     }
@@ -242,11 +371,19 @@ def run_visual_demo_inference_single(args):
                     predicted_score = parsed['score']
                     has_error = parsed['parse_error']
 
-                    # Calculate evaluation score for progress
-                    evaluation_score = calculate_evaluation_score(
-                        predicted_score,
-                        item['progress_score']
-                    )
+                    # Get ground truth value
+                    gt_score = item['progress_score']  # Can be float or None
+
+                    # Calculate false positive
+                    score_fp = calculate_score_false_positive(predicted_score, gt_score)
+                    if score_fp:
+                        score_fp_count += 1
+
+                    # Calculate evaluation score (only for numeric pairs)
+                    if gt_score is not None and isinstance(predicted_score, (int, float)):
+                        evaluation_score = calculate_evaluation_score(predicted_score, gt_score)
+                    else:
+                        evaluation_score = float('inf')
 
                     # Update statistics
                     if not has_error:
@@ -256,18 +393,27 @@ def run_visual_demo_inference_single(args):
                     else:
                         error_count += 1
 
-                    # Convert scores back to percentage strings
-                    predicted_score_str = f"{int(predicted_score * 100)}%" if predicted_score is not None else None
-                    ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
+                    # Convert scores to strings
+                    if predicted_score == "n/a":
+                        predicted_score_str = "n/a"
+                    elif isinstance(predicted_score, (int, float)):
+                        predicted_score_str = f"{int(predicted_score * 100)}%"
+                    else:
+                        predicted_score_str = None
+
+                    if gt_score is not None:
+                        ground_truth_score_str = f"{int(gt_score * 100)}%"
+                    else:
+                        ground_truth_score_str = "n/a"
 
                     result = {
                         "score": predicted_score_str,
                         "ground_truth_score": ground_truth_score_str,
+                        "evaluation_score": evaluation_score,
+                        "score_false_positive": score_fp,
                         "response": response,
                         "meta_data": {
-                            "id": item['id'],
-                            "task_goal": item.get('task_goal', ''),
-                            "stage_to_estimate": item.get('stage_to_estimate', ''),
+                            **item,  # Include all original data
                             "status": "failed" if has_error else "success"
                         }
                     }
@@ -278,19 +424,25 @@ def run_visual_demo_inference_single(args):
                     # Update progress bar stats
                     mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
                     error_rate = error_count / len(results) * 100 if results else 0.0
-                    pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, ErrorRate={error_rate:.1f}%")
+                    score_fp_rate = score_fp_count / len(results) * 100 if results else 0.0
+                    pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, ErrorRate={error_rate:.1f}%, ScoreFP={score_fp_rate:.1f}%")
 
                 except Exception as e:
                     # Parse error for this specific item
-                    ground_truth_score_str = f"{int(item['progress_score'] * 100)}%"
+                    gt_score = item.get('progress_score')
+                    if gt_score is not None:
+                        ground_truth_score_str = f"{int(gt_score * 100)}%"
+                    else:
+                        ground_truth_score_str = "n/a"
+
                     result = {
                         "score": None,
                         "ground_truth_score": ground_truth_score_str,
+                        "evaluation_score": float('inf'),
+                        "score_false_positive": False,
                         "response": f"Processing error: {str(e)}\nResponse: {response if 'response' in locals() else ''}",
                         "meta_data": {
-                            "id": item['id'],
-                            "task_goal": item.get('task_goal', ''),
-                            "stage_to_estimate": item.get('stage_to_estimate', ''),
+                            **item,  # Include all original data
                             "status": "failed"
                         }
                     }
@@ -301,15 +453,20 @@ def run_visual_demo_inference_single(args):
         except Exception as e:
             # Batch error - mark all items in batch as errors
             for item in batch_items:
-                ground_truth_score_str = f"{int(item.get('progress_score', 0.0) * 100)}%"
+                gt_score = item.get('progress_score')
+                if gt_score is not None:
+                    ground_truth_score_str = f"{int(gt_score * 100)}%"
+                else:
+                    ground_truth_score_str = "n/a"
+
                 result = {
                     "score": None,
                     "ground_truth_score": ground_truth_score_str,
+                    "evaluation_score": float('inf'),
+                    "score_false_positive": False,
                     "response": f"Batch error: {str(e)}",
                     "meta_data": {
-                        "id": item['id'],
-                        "task_goal": item.get('task_goal', ''),
-                        "stage_to_estimate": item.get('stage_to_estimate', ''),
+                        **item,  # Include all original data
                         "status": "failed"
                     }
                 }
@@ -335,12 +492,24 @@ def run_visual_demo_inference_single(args):
 
     # Calculate final statistics
     valid_results = [r for r in results if r['meta_data']['status'] == 'success']
-    finite_scores_all = [float(r.get('ref_score', float('inf'))) for r in results if r.get('ref_score') != float('inf')]
-    finite_scores_valid = [float(r.get('ref_score', float('inf'))) for r in valid_results if r.get('ref_score') != float('inf')]
+    finite_scores_all = [float(r.get('evaluation_score', float('inf'))) for r in results if r.get('evaluation_score') != float('inf')]
+    finite_scores_valid = [float(r.get('evaluation_score', float('inf'))) for r in valid_results if r.get('evaluation_score') != float('inf')]
 
     mean_score = sum(finite_scores_all) / len(finite_scores_all) if finite_scores_all else float('inf')
     mean_score_valid = sum(finite_scores_valid) / len(finite_scores_valid) if finite_scores_valid else float('inf')
     error_rate = error_count / len(results) if results else 0.0
+
+    # Calculate false positive rate
+    score_fp_total = sum(1 for r in results if r.get('score_false_positive', False))
+    score_fp_rate = score_fp_total / len(results) if results else 0.0
+
+    # Calculate VOC metrics
+    print("\nCalculating VOC (trajectory order consistency) metrics...")
+    voc_metrics = calculate_voc_metrics(results)
+
+    # Count GT type distribution
+    gt_numeric_count = sum(1 for r in results if r['meta_data'].get('progress_score') is not None)
+    gt_na_count = len(results) - gt_numeric_count
 
     # Print final summary
     print("\n" + "=" * 70)
@@ -351,9 +520,22 @@ def run_visual_demo_inference_single(args):
     print(f"Inferences per sample: {args.num_inferences}")
     print(f"Processed: {len(results)}")
     print(f"Errors: {error_count} ({error_rate*100:.2f}%)")
-    print(f"Mean evaluation score (all): {mean_score:.4f}")
-    print(f"Mean evaluation score (valid only): {mean_score_valid:.4f}")
-    print(f"Results saved to: {args.output_file}")
+    print(f"\nEvaluation Scores:")
+    print(f"  Mean evaluation score (all): {mean_score:.4f}")
+    print(f"  Mean evaluation score (valid only): {mean_score_valid:.4f}")
+    print(f"\nFalse Positive Rate:")
+    print(f"  Score false positive rate: {score_fp_rate*100:.2f}% ({score_fp_total}/{len(results)})")
+    print(f"\nVOC (Trajectory Order Consistency):")
+    if voc_metrics['voc_mean'] is not None:
+        print(f"  Mean VOC: {voc_metrics['voc_mean']:.4f}")
+        print(f"  Std VOC: {voc_metrics['voc_std']:.4f}")
+        print(f"  Trajectories evaluated: {voc_metrics['voc_count']}")
+    else:
+        print(f"  VOC: N/A (insufficient data)")
+    print(f"\nGround Truth Distribution:")
+    print(f"  Numeric GT: {gt_numeric_count} ({gt_numeric_count/len(results)*100:.1f}%)")
+    print(f"  N/A GT: {gt_na_count} ({gt_na_count/len(results)*100:.1f}%)")
+    print(f"\nResults saved to: {args.output_file}")
     print("=" * 70)
 
     # Save summary
@@ -368,6 +550,13 @@ def run_visual_demo_inference_single(args):
         "error_rate": error_rate,
         "mean_evaluation_score_all": mean_score,
         "mean_evaluation_score_valid": mean_score_valid,
+        "score_false_positive_count": score_fp_total,
+        "score_false_positive_rate": score_fp_rate,
+        "voc_mean": voc_metrics['voc_mean'],
+        "voc_std": voc_metrics['voc_std'],
+        "voc_trajectories_count": voc_metrics['voc_count'],
+        "gt_numeric_count": gt_numeric_count,
+        "gt_na_count": gt_na_count,
         "batch_size": args.batch_size,
         "num_gpus": num_gpus,
         "dataset_path": args.dataset_path,

@@ -25,6 +25,7 @@
 # Model configuration
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
 MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
+# MODEL_PATH="/projects/p32958/Results/full_model/edit_qwen25vl_3b_sft"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
