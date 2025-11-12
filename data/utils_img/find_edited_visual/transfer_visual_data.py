@@ -18,9 +18,14 @@ from tqdm import tqdm
 
 
 # File paths
-EDITED_VISUAL_NEGA_PATH = "/projects/p32958/chengxuan/ProgressLM/data/negative/final_edited/edited_visual_nega.jsonl"
+# EDITED_VISUAL_NEGA_PATH = "/projects/p32958/chengxuan/ProgressLM/data/negative/final_edited/edited_visual_nega.jsonl"
+# VISUAL_DEMO_DIR = "/projects/p32958/chengxuan/ProgressLM/data/raw/visual_demo"
+# OUTPUT_PATH = "/projects/p32958/chengxuan/ProgressLM/data/negative/final_edited/edited_visual_transfer_raw.jsonl"
+
+EDITED_VISUAL_NEGA_PATH = "/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/labeled/human_annotated_2.jsonl"
 VISUAL_DEMO_DIR = "/projects/p32958/chengxuan/ProgressLM/data/raw/visual_demo"
-OUTPUT_PATH = "/projects/p32958/chengxuan/ProgressLM/data/negative/final_edited/edited_visual_transfer_raw.jsonl"
+OUTPUT_PATH = "/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/labeled/edited_visual_nega_2.jsonl"
+
 
 
 def load_visual_demo_data() -> Dict[Tuple[str, str], dict]:

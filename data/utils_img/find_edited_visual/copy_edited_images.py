@@ -12,9 +12,13 @@ from tqdm import tqdm
 from collections import defaultdict
 
 # 路径配置
-JSONL_FILE = "/projects/p32958/chengxuan/ProgressLM/data/negative/final_edited/edited_visual_transfer_raw.jsonl"
+# JSONL_FILE = "/projects/p32958/chengxuan/ProgressLM/data/negative/final_edited/edited_visual_transfer_raw.jsonl"
+# SOURCE_BASE = "/projects/p32958/chengxuan/results/progresslm/negative/image"
+# TARGET_BASE = "/projects/p32958/chengxuan/new_extracted_images/images"
+
+JSONL_FILE = "/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/labeled/edited_visual_nega_2.jsonl"
 SOURCE_BASE = "/projects/p32958/chengxuan/results/progresslm/negative/image"
-TARGET_BASE = "/projects/p32958/chengxuan/new_extracted_images/images"
+TARGET_BASE = "/projects/p32958/chengxuan/data/images"
 
 # 失败记录
 failures = {
