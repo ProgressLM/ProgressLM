@@ -25,13 +25,14 @@ VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
 3. Identify the reference states from the visual demonstration that are most related to the current state image.
 4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
 5. Estimate the progress numerically as a floating-point value between 0% and 100%.
-6. If you really cannot match the current state image to any of the states from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
+6. If you really cannot match the current state image to any of the states from demonstration, you need to explain the reason within `<ref_think></ref_think>` and directly output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
 
 Your response **must** strictly follow this format:
 <ref_think>Reason for choosing the most related state from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
-<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or "n/a"</ref>
-<score_think>Reason for comparing the current state image with the reference state or "n/a"</score_think>
-<score>Your final estimated progress score or "n/a"</score>"""
+<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or directly output "n/a" with no other words if no match reference founded.</ref>
+<score_think>Reason for comparing the current state image with the reference state or directly output "n/a" with no other words</score_think>
+<score>Your final estimated progress score or directly output "n/a" with no other words</score>
+"""
 
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:
@@ -79,13 +80,13 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
     """
     # Handle "n/a" for closest_idx
     if isinstance(closest_idx, str) and closest_idx.lower() == "n/a":
-        closest_idx_str = "n/a (no valid reference found)"
+        closest_idx_str = "n/a"
     else:
         closest_idx_str = f"The No. {closest_idx} demo image is the most relevant frame"
 
     # Handle "n/a" for progress_score
     if isinstance(progress_score, str) and progress_score.lower() == "n/a":
-        progress_score_str = "n/a (no valid progress estimation)"
+        progress_score_str = "n/a"
     else:
         # Normalize progress_score to percentage string format
         if isinstance(progress_score, str):

@@ -135,20 +135,20 @@ run_task() {
 # Task 2: Example - Visual demo with 72B model on dataset 2
 
 
-export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/edited_visual_nega_raw_2.jsonl"
-export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_normal_think/p2"
-export GPU_IDS="0,1,2,3"
-export BATCH_SIZE=4
-run_task "Visual Demo 72B - Dataset 1" "think_visual_nega_72b.sh"
-
-
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/edited_visual_nega_raw_1.jsonl"
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/edited_visual_nega_raw_2.jsonl"
 # export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_normal_think/p1"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_edit_think/raw_2"
 # export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=4
+# export BATCH_SIZE=5
 # run_task "Visual Demo 72B - Dataset 1" "think_visual_nega_72b.sh"
+
+
+export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/edited_visual_nega_raw_1.jsonl"
+export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
+export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_edit_think/raw_1"
+export GPU_IDS="0,1,2,3"
+export BATCH_SIZE=5
+run_task "Visual Demo 72B - Dataset 1" "think_visual_nega_72b.sh"
 
 
 
