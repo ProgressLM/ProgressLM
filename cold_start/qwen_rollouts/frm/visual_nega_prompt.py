@@ -20,8 +20,8 @@ VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to es
 
 
 VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Check the current state image carefully.
-2. Analyze the visual demonstration to understand how the task progresses from start to completion.
+1. Analyze the overall task goal and visual demonstration to understand how the task progresses from start to completion.
+2. Check the current state image carefully.
 3. Identify the reference states from the visual demonstration that are most related to the current state image.
 4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
 5. Estimate the progress numerically as a floating-point value between 0% and 100%.

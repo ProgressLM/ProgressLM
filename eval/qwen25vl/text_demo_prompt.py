@@ -3,10 +3,7 @@ from typing import Dict, Any, List
 
 
 # System prompt for inference mode
-TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of an ongoing task based on a textual demonstration of its step-by-step progression.
-
-The demonstration consists of a sequence of text instructions (text_demo), each describing one step of the process.
-Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
+TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of the current state during an ongoing task based on a textual demonstration. The demonstration consists of a sequence of text-based steps and their corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
 TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
@@ -77,6 +74,7 @@ def build_text_demo_prompt(
     Build a multi-part prompt for Text Demo progress estimation task (inference mode).
 
     Prompt structure:
+    0. Text: TEXT_DEMO_SYSTEM_PROMPT
     1. Text: "Our goal is {task_goal}"
     2. Text: "Here is the demonstration:"
     3. Text: Formatted text_demo with step numbers and progress values
@@ -97,8 +95,11 @@ def build_text_demo_prompt(
     """
     msgs = []
 
+    # Part 0: System prompt
+    msgs.append({"type": "text", "value": TEXT_DEMO_SYSTEM_PROMPT})
+
     # Part 1: Task goal
-    msgs.append({"type": "text", "value": f"Our goal is {task_goal}."})
+    msgs.append({"type": "text", "value": f"The overall task goal is {task_goal}."})
 
     # Part 2: Demonstration introduction
     msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART1})

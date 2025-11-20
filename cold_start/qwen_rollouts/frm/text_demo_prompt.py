@@ -126,6 +126,9 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
     <score_think></score_think>
     <score>{progress_score_str}</score>\n\n
     You **must** only add content within <ref_think></ref_think> and <score_think></score_think> to the Ground-truth Partial Response and must not change what we already provided in the Ground-truth Partial Response. Then respond with the completed Ground-truth Response.
+    Additional Hint: all the cases you meet now is all normal cases, never mistake them to n/a!
+    When filling in <ref_think> and <score_think>, base your reasoning on what you can independently observe and infer from the state, rather than referencing this description as given information. Your reasoning should appear as your own discovery, not as something taken from an external hint.
+
 """
 
     return ground_truth_text

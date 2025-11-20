@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 
 
 # System prompt for inference mode
-VISUAL_DEMO_SYSTEM_PROMPT = """You are a progress estimator specializing in evaluating the progress of an ongoing task based on visual evidence. The demonstration consists of a sequence of video frames (images) showing how the task evolves from 0% (start) to 100% (completion). Your goal is to produce a human-like reasoning chain that logically supports the given progress score."""
+VISUAL_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of the current state during an ongoing task based on a visual demonstration. The demonstration consists of a sequence of vision-based states and their corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
 VISUAL_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
@@ -12,23 +12,19 @@ VISUAL_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-VISUAL_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
-If you detect any of the following abnormal situations:
-- The current state does not match the task goal or any visual demo images
-- The operation appears to have failed or resulted in an error state
-- Once detected, your output should be "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
+VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
+1. Analyze the overall task goal and visual demonstration to understand how the task progresses from start to completion.
+2. Check the current state image carefully.
+3. Identify the reference states from the visual demonstration that are most related to the current state image.
+4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
+5. Estimate the progress numerically as a floating-point value between 0% and 100%.
+6. If you really cannot match the current state image to any of the states from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
 
-Your task:
-1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
-2. Identify the frame (or frames) from the demonstration that are visually most similar to the current state image.
-3. Compare the current state to that reference frame and determine whether it shows more or less progress.
-4. Finally, provide a numeric progress estimation between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
-
-Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the closest demonstration frame as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
-<ref>The progress score of your chosen reference frame, OR "n/a" if abnormal situation detected</ref>
-<score_think>Your reasoning for comparing the current state image with the reference frame, OR explanation of why no valid progress score can be assigned</score_think>
-<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
+Your response **must** strictly follow this format:
+<ref_think>Reason for choosing the most related state from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
+<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or "n/a"</ref>
+<score_think>Reason for comparing the current state image with the reference state or "n/a"</score_think>
+<score>Your final estimated progress score or "n/a"</score>"""
 
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:
@@ -71,7 +67,8 @@ def build_visual_demo_prompt(
     Build a multi-part prompt for Visual Demo progress estimation task (inference mode).
 
     Prompt structure:
-    1. Text: Task goal
+    0. Text: VISUAL_DEMO_SYSTEM_PROMPT
+    1. Text: "The overall task goal is ..."
     2. Text: "Here is the demonstration:"
     3. Images: visual_demo (N images, variable length)
     4. Text: Progress shift information (e.g., "<image> 0% <image> 25% <image> 50% <image> 75% <image> 100%")
@@ -91,6 +88,10 @@ def build_visual_demo_prompt(
         List of message dicts for the model
     """
     msgs = []
+
+    # Part 0: System prompt and task goal
+    msgs.append({"type": "text", "value": VISUAL_DEMO_SYSTEM_PROMPT})
+    msgs.append({"type": "text", "value": f"The overall task goal is {task_goal}"})
 
     # Part 1: Demonstration introduction
     msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART1})

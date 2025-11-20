@@ -29,7 +29,7 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/text_nega/32b_rollout"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_nega/32b_rollout"
 PROJECT_NAME="text_32b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
