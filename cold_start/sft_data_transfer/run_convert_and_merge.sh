@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==================== Configuration ====================
 # CoT responses directory
-COT_DIR="/projects/p32958/chengxuan/results/new_begins/all_new_think"
+COT_DIR="/projects/p32958/chengxuan/ProgressLM/data/sft_data/all_new_think"
 
 # Original SFT data directory
 ORIGINAL_DIR="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now"
@@ -29,8 +29,9 @@ FINAL_OUTPUT_DIR="/projects/p32958/chengxuan/ProgressLM/data/sft_data/merged"
 # Dataset mappings: "cot_file|original_file|type"
 # type: text or visual
 declare -A DATASET_MAPPINGS=(
-    ["text_nega_think.jsonl"]="text_nega_new_sft.jsonl|text"
-    ["text_normal_think.jsonl"]="text_normal_sft.jsonl|text"
+    ["text_extend_normal_think.jsonl"]="text_normal.jsonl|text"
+    ["text_nega_new_think.jsonl"]="text_nega_new_sft.jsonl|text"
+    ["text_normal_think.jsonl"]="text_normal.jsonl|text"
     ["visual_edit_think.jsonl"]="visual_edit_sft.jsonl|visual"
     ["visual_multi_view_think.jsonl"]="visual_multi_view_sft.jsonl|visual"
     ["visual_single_view_think.jsonl"]="visual_normal_sft.jsonl|visual"

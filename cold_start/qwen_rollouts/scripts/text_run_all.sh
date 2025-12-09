@@ -95,7 +95,7 @@ run_task() {
 # run_task "Text Nega 72B - Negative Samples" "think_text_nega_72b.sh"
 
 
-# Task 2: Example - Text demo with 72B model on dataset 2
+# # Task 2: Example - Text demo with 72B model on dataset 2
 
 # export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/text_h5_agilex_3rgb_sft.jsonl"
 # export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
@@ -105,25 +105,32 @@ run_task() {
 # run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 
 
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/text_h5_franka_3rgb_sft.jsonl"
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/batch/t1.jsonl"
 # export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/franka"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/extend_2"
 # export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=40
+# export BATCH_SIZE=35
 # run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/batch/t2.jsonl"
 # export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/franka"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/extend_2"
 # export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=40
+# export BATCH_SIZE=35
 # run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/new_text_rl.jsonl"
+export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/batch/t3.jsonl"
+export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
+export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/extend_2"
+export GPU_IDS="0,1,2,3"
+export BATCH_SIZE=35
+run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
+
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/new_text_extend.jsonl"
 # export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/extend"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/new/extend"
 # export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=40
+# export BATCH_SIZE=35
 # run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 
 

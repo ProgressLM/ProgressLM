@@ -24,7 +24,7 @@
 
 # Model configuration
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
+MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 
 # MODEL_PATH="/projects/p32958/Results/full_model/edit_qwen25vl_3b_sft"
 
@@ -33,10 +33,10 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/sft_35k_3b_edit"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/sft_3b_think"
 
 
-PROJECT_NAME="visual_multi_view_rl_3B"
+PROJECT_NAME="think_sft_3B"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"

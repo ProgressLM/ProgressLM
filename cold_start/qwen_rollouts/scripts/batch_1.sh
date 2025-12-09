@@ -1,14 +1,14 @@
 #!/bin/bash
 
 #####################################################################
-# Visual Demo Batch Runner
+# Text Demo Batch Runner
 #
-# This script runs multiple visual demo inference tasks sequentially.
+# This script runs multiple text demo inference tasks sequentially.
 # Each task can have different configurations (dataset, output dir, batch size, etc.)
 #
 # Usage:
 #   1. Edit the task definitions below
-#   2. Run: bash visual_run_all.sh
+#   2. Run: bash text_run_all.sh
 #####################################################################
 
 # Get script directory
@@ -27,7 +27,7 @@ FAILED_TASKS=0
 START_TIME=$(date +%s)
 
 echo "======================================================================"
-echo "Visual Demo Batch Runner"
+echo "Text Demo Batch Runner"
 echo "======================================================================"
 echo ""
 
@@ -81,101 +81,65 @@ run_task() {
 # Example task structure:
 #   export DATASET_PATH="/path/to/dataset.jsonl"
 #   export OUTPUT_DIR="/path/to/output"
-#   export BATCH_SIZE=8
-#   run_task "Task Description" "think_visual_demo_72b.sh"
+#   export BATCH_SIZE=40
+#   run_task "Task Description" "think_text_demo_72b.sh"
 #####################################################################
 
-# Task 1: Example - Visual demo with 72B model on dataset 1
-
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visua_normal_1.jsonl"
-# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_normal_think/p1"
-# export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=4
-# run_task "Visual Demo 72B - Dataset 1" "think_visual_demo_72b.sh"
-
-# Task 1: Example - Visual demo with 72B model on dataset 1
-
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visua_normal_2.jsonl"
-# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_normal_think/p2"
-# export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=4
-# run_task "Visual Demo 72B - Dataset 1" "think_visual_demo_72b.sh"
 
 
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/multi_camera_1.jsonl"
-# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_multi_view/p1"
-# export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=4
-# run_task "Visual Demo 72B - Dataset 1" "think_visual_demo_72b.sh"
-
-
-
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/multi_camera_2.jsonl"
-# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_multi_view/p2"
-# export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=4
-# run_task "Visual Demo 72B - Dataset 1" "think_visual_demo_72b.sh"
-
-
-
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/multi_camera_3.jsonl"
-# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_multi_view/p3"
-# export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=4
-# run_task "Visual Demo 72B - Dataset 1" "think_visual_demo_72b.sh"
-
-
-
-
-# Task 2: Example - Visual demo with 72B model on dataset 2
-
-
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/edited_visual_nega_raw_2.jsonl"
-# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_edit_think/raw_2"
-# export GPU_IDS="0,1,2,3"
-# export BATCH_SIZE=5
-# run_task "Visual Demo 72B - Dataset 1" "think_visual_nega_72b.sh"
-
-
-export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/batch/edited_visual_nega_raw_1.jsonl"
+export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_merged_with_rank.jsonl"
 export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_edit_think/raw_1"
+export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_nega_think/new/"
 export GPU_IDS="0,1,2,3"
-export BATCH_SIZE=5
-run_task "Visual Demo 72B - Dataset 1" "think_visual_nega_72b.sh"
+export BATCH_SIZE=35
+run_task "Text Nega 72B - Negative Samples" "think_text_nega_72b.sh"
 
-export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/batch/edited_visual_nega_raw_1.jsonl"
+
+
+
+export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/text_h5_agilex_3rgb_sft.jsonl"
 export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
-export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/visual_edit_think/raw_1"
+export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/new/agilex"
 export GPU_IDS="0,1,2,3"
-export BATCH_SIZE=5
-run_task "Visual Demo 72B - Dataset 1" "think_visual_nega_72b.sh"
+export BATCH_SIZE=35
+run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 
 
-# Task 3: Example - Visual demo with 32B model
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/text_h5_franka_3rgb_sft.jsonl"
+# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/new/franka"
+# export GPU_IDS="0,1,2,3"
+# export BATCH_SIZE=35
+# run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/new/franka"
+# export GPU_IDS="0,1,2,3"
+# export BATCH_SIZE=35
+# run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
+
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/new_text_extend.jsonl"
+# export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_normal_think/new/extend"
+# export GPU_IDS="0,1,2,3"
+# export BATCH_SIZE=35
+# run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
+
+
+
+
+# Task 3: Example - Text demo with 32B model
+# Uncomment and modify as needed:
 # export MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/visual_demo/dataset3.jsonl"
-# export OUTPUT_DIR="/projects/p32958/chengxuan/results/visual_32b_batch1"
-# export BATCH_SIZE=4
-# run_task "Visual Demo 32B - Dataset 3" "think_visual_demo.sh"
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_raw.jsonl"
+# export OUTPUT_DIR="/projects/p32958/chengxuan/results/text_32b_batch1"
+# export BATCH_SIZE=10
+# run_task "Text Demo 32B - Dataset 3" "think_text_demo.sh"
 
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/edited_nega_text_sft.jsonl"
 
-
-
-
-
-
-
-
-
-
+# Add more tasks as needed...
 
 #####################################################################
 # Summary

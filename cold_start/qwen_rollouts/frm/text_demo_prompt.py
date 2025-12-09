@@ -20,19 +20,47 @@ TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 TEXT_DEMO_INSTRUCTION_PART2 = """Here is the image of the current state that you need to estimate:"""
 
 
+# TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
+# 1. Check the current state image carefully.
+# 2. Analyze the textual demonstration to understand how the task progresses from start to completion.
+# 3. Identify the reference step from the textual demonstration that are most related to the current state image.
+# 4. Compare the current state image with the chosen reference step, determining whether the image is behind or after the reference step.
+# 5. Estimate the progress numerically as a floating-point value between 0% and 100%.
+# 6. If you really cannot match the current state image to any of the steps from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
+
+# Your response **must** strictly follow this format:
+# <ref_think>Reason for choosing the most related step from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
+# <ref>which step from the textual demonstration is most related to the current state (output only the number of the step) or "n/a"</ref>
+# <score_think>Reason for comparing the current state image with the reference step or "n/a"</score_think>
+# <score>Your final estimated progress score or "n/a"</score>"""
+
 TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Check the current state image carefully.
+1. Read the task goal to understand the task objective and the entity being operated on.
 2. Analyze the textual demonstration to understand how the task progresses from start to completion.
-3. Identify the reference step from the textual demonstration that are most related to the current state image.
-4. Compare the current state image with the chosen reference step, determining whether the image is behind or after the reference step.
-5. Estimate the progress numerically as a floating-point value between 0% and 100%.
-6. If you really cannot match the current state image to any of the steps from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
+3. Examine the current state image carefully. If the target is incorrect (different from the object metioned in task goal) or you really cannot match the current image to any step in the demonstration, you must explain the reason within <ref_think></ref_think> and output “n/a” within <ref></ref>, <score_think></score_think>, and <score></score>.
+4. If a match is possible, examine all steps in the textual demonstration, where each step represents an independent action. Identify the single step whose action is most closely related to the current state image. Then compare the current image with that reference step to determine whether it corresponds to an earlier or later stage, and finally estimate the overall progress as a floating-point value between 0% and 100%.
 
 Your response **must** strictly follow this format:
-<ref_think>Reason for choosing the most related step from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
-<ref>which step from the textual demonstration is most related to the current state (output only the number of the step) or "n/a"</ref>
-<score_think>Reason for comparing the current state image with the reference step or "n/a"</score_think>
-<score>Your final estimated progress score or "n/a"</score>"""
+<ref_think>
+Explain the reason for selecting the most relevant step from the demonstration.
+If the task target is incorrect, or the current state image cannot be matched to any demonstration step, explain why here.
+</ref_think>
+
+<ref>
+If a valid matching step exists, output only the step number.
+If the task target is incorrect or no step matches the current image, output only "n/a".
+</ref>
+
+<score_think>
+If a valid matching step exists, explain how you compare the current image with that step to judge progress.
+If the task target is incorrect or no step matches the current image, output only "n/a".
+</score_think>
+
+<score>
+If a valid matching step exists, output the estimated progress (0%–100%).
+If the task target is incorrect or no step matches the current image, output only "n/a".
+</score>
+"""
 
 
 def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:

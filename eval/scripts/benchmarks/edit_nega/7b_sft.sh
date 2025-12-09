@@ -24,15 +24,15 @@
 
 # Model configuration
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
+MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_7b_sft"
 # MODEL_PATH="/projects/p32958/Results/full_model/global_step_148/actor/qwen25_vl_3b_rl_step_148"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/rl/final/raw/edited_visual_transfer_raw_rl.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visual_edit_sft.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/edit_nega/7B_SFT"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/7B_SFT"
 
 
 PROJECT_NAME="visual_7B_SFT"

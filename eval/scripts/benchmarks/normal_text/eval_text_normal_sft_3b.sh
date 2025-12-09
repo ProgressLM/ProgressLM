@@ -22,14 +22,14 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
+MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/text_normal/sft_3b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_normal/sft_3b"
 PROJECT_NAME="text_normal_sft_3b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
@@ -38,7 +38,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=64  # Batch size per GPU (can be higher since only 1 image per sample)
+BATCH_SIZE=100  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

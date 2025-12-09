@@ -24,14 +24,14 @@
 
 # Model configuration
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
+MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_7b_sft"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_single_view/one_view_7B_SFT"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/7B_SFT"
 
 
 PROJECT_NAME="visual_one_view_7B_SFT"
@@ -42,7 +42,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=5  # Batch size per GPU (adjust based on VRAM and image count)
+BATCH_SIZE=8  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

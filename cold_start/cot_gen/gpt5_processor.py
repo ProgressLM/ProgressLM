@@ -144,6 +144,20 @@ class VisualProgressProcessor:
         content = []
         
         # 1. 系统提示词的第一部分
+        # system_prompt = (
+        #     "You are an expert AI analyst specializing in visual task-progress evaluations "
+        #     "Your objective is not to estimate from scratch. "
+        #     "Instead, your task is to construct a perfect, human-like chain of thought that "
+        #     "logically explains and justifies a known, ground-truth progress score. "
+        #     "Your entire response must read as if you are deducing the conclusion independently "
+        #     "from visual analysis alone. This is the system prompt for normal inference. "
+        #     "You are a progress estimator specializing in evaluating the progress of an ongoing "
+        #     "task based on visual evidence. The demonstration consists of a sequence of video "
+        #     "frames (images) showing how the task evolves from 0% (start) to 100% (completion). "
+        #     "Your goal is to produce a human-like reasoning chain that logically supports the "
+        #     "given progress score. Here is the demonstration:"
+        # )
+        
         system_prompt = (
             "You are an expert AI analyst specializing in visual task-progress evaluations "
             "Your objective is not to estimate from scratch. "
@@ -157,6 +171,7 @@ class VisualProgressProcessor:
             "Your goal is to produce a human-like reasoning chain that logically supports the "
             "given progress score. Here is the demonstration:"
         )
+
         content.append({"type": "text", "text": system_prompt})
         
         # 2. 添加visual_demo中的所有图片
