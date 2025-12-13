@@ -9,7 +9,7 @@ The demonstration consists of a sequence of text instructions (text_demo), each 
 Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
-TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
+TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration (If you see [left] [right], it indicates that this is a dual-arm robot, with the left and right arms working in coordination):"""
 
 
 TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
@@ -30,6 +30,7 @@ If the task target is incorrect, or the current state image cannot be matched to
 <ref>
 If a valid matching step exists, output only the step number.
 If the task target is incorrect or no step matches the current image, output only "n/a".
+Please ensure that this is the same as the ref value you reasoned before.
 </ref>
 
 <score_think>

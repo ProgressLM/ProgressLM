@@ -9,7 +9,7 @@ data:
   video_fps: 2.0
   max_prompt_length: 20000
   max_response_length: 8192
-  rollout_batch_size: 48
+  rollout_batch_size: 64
   mini_rollout_batch_size: null
   val_batch_size: 32
   format_prompt: null
@@ -36,7 +36,7 @@ algorithm:
 
 worker:
   actor:
-    global_batch_size: 48
+    global_batch_size: 64
     micro_batch_size_per_device_for_update: 1
     micro_batch_size_per_device_for_experience: 2
     max_grad_norm: 1.0
@@ -63,11 +63,11 @@ worker:
       offload_optimizer: true
 
   rollout:
-    n: 8
+    n: 16
     temperature: 0.6
     top_p: 0.9
     limit_images: 50
-    gpu_memory_utilization: 0.7
+    gpu_memory_utilization: 0.6
     enforce_eager: false
     enable_chunked_prefill: false
     tensor_parallel_size: 1
@@ -89,7 +89,7 @@ worker:
 
   reward:
     reward_type: batch
-    reward_function: ./progresslm/reward/visual_demo_reward.py:compute_score
+    reward_function: ./progresslm/reward/progresslm_reward.py:compute_score
 
 trainer:
   total_epochs: 2
@@ -105,7 +105,7 @@ trainer:
   val_only: false
   val_generations_to_log: 2
   save_freq: 10
-  save_limit: 5
+  save_limit: 10
   save_model_only: false
   save_checkpoint_path: null
   load_checkpoint_path: null

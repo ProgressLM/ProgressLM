@@ -158,6 +158,7 @@ def collect_text_prompt_segments(
         TEXT_DEMO_INSTRUCTION_PART2,
         TEXT_DEMO_INSTRUCTION_PART3,
         build_text_demo_prompt_from_item,
+        format_text_demo_with_progress,
     )
 
     task_goal: str = item["task_goal"]
@@ -170,13 +171,9 @@ def collect_text_prompt_segments(
             f"text_demo length ({len(text_demo)}) must equal total_steps ({total_steps})"
         )
 
-    demo_percentages = [
-        round((idx / total_steps) * 100) for idx in range(1, len(text_demo) + 1)
-    ]
-    demo_sequence = " ".join(
-        f"{step.strip()} {percentage}%"
-        for step, percentage in zip(text_demo, demo_percentages)
-    )
+    # Use format_text_demo_with_progress to generate properly formatted demo sequence
+    # Output format: "Step 1. <text>\nThe Progress for now is X%.\n\nStep 2. ..."
+    demo_sequence = format_text_demo_with_progress(text_demo, total_steps)
 
     prompt_sections = [
         TEXT_DEMO_SYSTEM_PROMPT,

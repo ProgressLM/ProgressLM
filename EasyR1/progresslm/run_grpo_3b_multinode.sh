@@ -121,7 +121,7 @@ echo "=========================================="
 
 # ===== Training config =====
 # CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_${TIMESTAMP}"
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251211-064818"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251212-015538"
 
 # Get current node IP
 CURRENT_IP=$(hostname -I | awk '{print $1}')
@@ -149,27 +149,109 @@ if [ "$MODE" = "head" ]; then
     WAIT_INTERVAL=10  # Check every 10 seconds
     WAITED=0
 
-    echo "Waiting for $REQUIRED_GPUS GPUs to join the cluster..."
+    echo "Waiting for $NNODES nodes ($REQUIRED_GPUS GPUs) to join the cluster..."
+    echo "Expected: $NNODES nodes x $N_GPUS_PER_NODE GPUs each"
+    echo ""
+
     while [ $WAITED -lt $MAX_WAIT ]; do
-        # Get available GPU count using Python Ray API (more reliable)
-        AVAILABLE_GPUS=$(python3 -c "import ray; ray.init(address='auto', ignore_reinit_error=True); print(int(ray.cluster_resources().get('GPU', 0)))" 2>/dev/null)
-        AVAILABLE_GPUS=${AVAILABLE_GPUS:-0}
+        echo "========== [${WAITED}s] Cluster Status =========="
 
-        echo "[${WAITED}s] Available GPUs: ${AVAILABLE_GPUS}/${REQUIRED_GPUS}"
+        # Get detailed node info using Python Ray API
+        python3 << PYEOF
+import ray
+import sys
 
-        if [ "$AVAILABLE_GPUS" -ge "$REQUIRED_GPUS" ]; then
-            echo "All GPUs ready!"
-            break
+try:
+    ray.init(address='auto', ignore_reinit_error=True)
+
+    # Get all nodes
+    nodes = ray.nodes()
+    alive_nodes = [n for n in nodes if n['Alive']]
+    dead_nodes = [n for n in nodes if not n['Alive']]
+
+    total_gpus = 0
+    print(f"Connected nodes: {len(alive_nodes)}/${NNODES}")
+    print("")
+
+    # Show connected nodes
+    print("CONNECTED NODES:")
+    for i, node in enumerate(alive_nodes, 1):
+        node_ip = node['NodeManagerAddress']
+        resources = node['Resources']
+        gpus = int(resources.get('GPU', 0))
+        cpus = int(resources.get('CPU', 0))
+        total_gpus += gpus
+        node_type = "HEAD" if node.get('IsHeadNode', False) else "WORKER"
+        print(f"  [{i}] {node_ip:20} | {node_type:6} | GPUs: {gpus} | CPUs: {cpus}")
+
+    print(f"\nTotal GPUs available: {total_gpus}")
+
+    # Show dead/disconnected nodes if any
+    if dead_nodes:
+        print("\nDISCONNECTED NODES:")
+        for node in dead_nodes:
+            node_ip = node['NodeManagerAddress']
+            print(f"  - {node_ip} (was connected, now dead)")
+
+    # Print which nodes are still missing
+    expected_nodes = ${NNODES}
+    expected_gpus = ${REQUIRED_GPUS}
+
+    if len(alive_nodes) < expected_nodes:
+        missing = expected_nodes - len(alive_nodes)
+        print(f"\nWAITING FOR: {missing} more node(s) to connect")
+        print(f"   Run on worker nodes:")
+        print(f"   bash run_grpo_3b_multinode.sh worker ${CURRENT_IP}")
+
+    if total_gpus < expected_gpus:
+        missing_gpus = expected_gpus - total_gpus
+        print(f"\nMISSING GPUs: {missing_gpus} (need {expected_gpus}, have {total_gpus})")
+
+    # Exit with code indicating if ready
+    sys.exit(0 if total_gpus >= expected_gpus else 1)
+
+except Exception as e:
+    print(f"Error getting cluster info: {e}")
+    sys.exit(1)
+PYEOF
+
+        CLUSTER_READY=$?
+
+        if [ $CLUSTER_READY -eq 0 ]; then
+            # Double check with simple GPU count
+            AVAILABLE_GPUS=$(python3 -c "import ray; ray.init(address='auto', ignore_reinit_error=True); print(int(ray.cluster_resources().get('GPU', 0)))" 2>/dev/null)
+            AVAILABLE_GPUS=${AVAILABLE_GPUS:-0}
+
+            if [ "$AVAILABLE_GPUS" -ge "$REQUIRED_GPUS" ]; then
+                echo ""
+                echo "All $REQUIRED_GPUS GPUs ready!"
+                break
+            fi
         fi
 
+        echo "=========================================="
+        echo ""
         sleep $WAIT_INTERVAL
         WAITED=$((WAITED + WAIT_INTERVAL))
     done
 
+    # Final check
+    AVAILABLE_GPUS=$(python3 -c "import ray; ray.init(address='auto', ignore_reinit_error=True); print(int(ray.cluster_resources().get('GPU', 0)))" 2>/dev/null)
+    AVAILABLE_GPUS=${AVAILABLE_GPUS:-0}
+
     if [ "$AVAILABLE_GPUS" -lt "$REQUIRED_GPUS" ]; then
-        echo "ERROR: Only $AVAILABLE_GPUS GPUs available after ${MAX_WAIT}s wait."
-        echo "Expected $REQUIRED_GPUS GPUs. Aborting."
+        echo ""
+        echo "========== ERROR: TIMEOUT =========="
+        echo "Only $AVAILABLE_GPUS GPUs available after ${MAX_WAIT}s wait."
+        echo "Expected $REQUIRED_GPUS GPUs from $NNODES nodes."
+        echo ""
+        echo "Final cluster status:"
         ray status
+        echo ""
+        echo "Check if worker nodes can reach head node:"
+        echo "  - Verify network connectivity: ping ${CURRENT_IP}"
+        echo "  - Check firewall allows port ${RAY_PORT}"
+        echo "  - Verify workers started with correct IP"
         exit 1
     fi
 

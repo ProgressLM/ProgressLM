@@ -26,14 +26,14 @@
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/progresslm_sft_epoch2_model"
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_300/actor/qwen25vl_3b_step300"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_single_view/one_view_3B_RL"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_3B_RL"
 
 
 PROJECT_NAME="visual_one_view_3B_RL"

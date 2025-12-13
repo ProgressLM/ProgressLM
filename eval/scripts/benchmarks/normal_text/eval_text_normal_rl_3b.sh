@@ -22,7 +22,7 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251210-120015/global_step_170/actor/qwen25vl_3b_rl_step170"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_300/actor/qwen25vl_3b_step300"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
@@ -30,7 +30,7 @@ IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_normal/rl_3b"
-PROJECT_NAME="text_normal_rl_3b"
+PROJECT_NAME="rl_3b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"

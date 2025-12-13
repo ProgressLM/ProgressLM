@@ -22,8 +22,8 @@ VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
 
 Your response **must** strictly follow this format:
 <ref_think>Reason for choosing the most related state from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
-<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or "n/a"</ref>
-<score_think>Reason for comparing the current state image with the reference state or "n/a"</score_think>
+<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or "n/a". Please ensure that this is the same as the ref value you reasoned before.</ref>
+<score_think>Reason for comparing the current state image with the reference state or directly output "n/a" if the task target is incorrect or no demonstration matches the current image.</score_think>
 <score>Your final estimated progress score or "n/a"</score>"""
 
 

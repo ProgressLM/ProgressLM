@@ -25,7 +25,7 @@
 # Model configuration
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
-MODEL_PATH="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251210-120015/global_step_170/actor/qwen25vl_3b_rl_step170"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_230/actor/qwen25vl_rl_step230"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visual_edit_sft.jsonl"
