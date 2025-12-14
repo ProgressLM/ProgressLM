@@ -22,7 +22,7 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/Results/full_model/global_step_300/actor/qwen25vl_3b_step300"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_530/actor/qwen25vl_3b_step530"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_nega_test.jsonl"

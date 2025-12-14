@@ -14,7 +14,10 @@ set -x
 #   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh head
 #
 #   # On node qgpu02 (worker): 
+#   conda deactivate
 #   source /projects/p32958/miniconda3/bin/activate
+#   conda activate easyr1
+#   cd /projects/p32958/chengxuan/ProgressLM/EasyR1
 #   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 10.0.0.1
 #   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 172.20.213.15
 ################################################################################
