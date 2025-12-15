@@ -13,7 +13,7 @@
 # ======================== Configuration ========================
 
 # Model configuration - UPDATE THIS PATH TO YOUR MODEL
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl_4epoch"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
 # Example paths:
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/progresslm_sft_epoch2_model"
 # MODEL_PATH="/Users/cxqian/Codes/ProgressLM/saved/models/your_model"

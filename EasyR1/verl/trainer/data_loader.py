@@ -69,41 +69,45 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
         drop_last=True,
     )
 
-    val_dataset = RLHFDataset(
-        data_path=config.val_files,
-        tokenizer=tokenizer,
-        processor=processor,
-        prompt_key=config.prompt_key,
-        answer_key=config.answer_key,
-        image_key=config.image_key,
-        video_key=config.video_key,
-        image_dir=config.image_dir,
-        video_fps=config.video_fps,
-        max_prompt_length=config.max_prompt_length,
-        truncation="right",
-        format_prompt=config.format_prompt,
-        min_pixels=config.min_pixels,
-        max_pixels=config.max_pixels,
-        filter_overlong_prompts=config.filter_overlong_prompts,
-    )
+    # Skip validation dataset if val_files is empty
+    if config.val_files:
+        val_dataset = RLHFDataset(
+            data_path=config.val_files,
+            tokenizer=tokenizer,
+            processor=processor,
+            prompt_key=config.prompt_key,
+            answer_key=config.answer_key,
+            image_key=config.image_key,
+            video_key=config.video_key,
+            image_dir=config.image_dir,
+            video_fps=config.video_fps,
+            max_prompt_length=config.max_prompt_length,
+            truncation="right",
+            format_prompt=config.format_prompt,
+            min_pixels=config.min_pixels,
+            max_pixels=config.max_pixels,
+            filter_overlong_prompts=config.filter_overlong_prompts,
+        )
 
-    if config.val_batch_size == -1:
-        val_batch_size = len(val_dataset)
+        if config.val_batch_size == -1:
+            val_batch_size = len(val_dataset)
+        else:
+            val_batch_size = config.val_batch_size
+
+        val_dataloader = StatefulDataLoader(
+            dataset=val_dataset,
+            batch_size=val_batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            collate_fn=collate_fn,
+            pin_memory=False,
+            drop_last=False,
+        )
+        print(f"Size of val dataloader: {len(val_dataloader)}")
     else:
-        val_batch_size = config.val_batch_size
-
-    val_dataloader = StatefulDataLoader(
-        dataset=val_dataset,
-        batch_size=val_batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        collate_fn=collate_fn,
-        pin_memory=False,
-        drop_last=False,
-    )
+        val_dataloader = None
+        print("Validation dataloader skipped (val_files is empty)")
 
     assert len(train_dataloader) >= 1
-    assert len(val_dataloader) >= 1
     print(f"Size of train dataloader: {len(train_dataloader)}")
-    print(f"Size of val dataloader: {len(val_dataloader)}")
     return train_dataloader, val_dataloader

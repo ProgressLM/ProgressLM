@@ -63,11 +63,11 @@ worker:
       offload_optimizer: true
 
   rollout:
-    n: 16
+    n: 8
     temperature: 0.6
     top_p: 0.9
     limit_images: 50
-    gpu_memory_utilization: 0.3
+    gpu_memory_utilization: 0.4
     enforce_eager: false
     enable_chunked_prefill: false
     tensor_parallel_size: 1
@@ -94,7 +94,7 @@ worker:
 trainer:
   total_epochs: 2
   max_steps: null
-  project_name: progresslm_rl_3b_20k_renew
+  project_name: progresslm_rl_3b_20k_re
   experiment_name: qwen2p5vl3b
   logger: ["console", "wandb"]
   nnodes: 1

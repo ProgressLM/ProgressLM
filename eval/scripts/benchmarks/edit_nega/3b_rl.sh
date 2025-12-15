@@ -25,7 +25,8 @@
 # Model configuration
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
-MODEL_PATH="/projects/p32958/Results/full_model/global_step_530/actor/qwen25vl_3b_step530"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
+
 
 
 # Dataset configuration - using merged eval dataset

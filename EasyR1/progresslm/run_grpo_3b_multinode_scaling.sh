@@ -11,16 +11,15 @@ set -x
 #
 # Example:
 #   # On node qgpu01 (head):
-#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh head
+#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode_scaling.sh head
 #
 #   # On node qgpu02 (worker): 
 #   conda deactivate
 #   source /projects/p32958/miniconda3/bin/activate
 #   conda activate easyr1
 #   cd /projects/p32958/chengxuan/ProgressLM/EasyR1
-#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 10.0.0.1
-#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 172.20.213.8
-#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 172.20.213.5
+#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode_scaling.sh worker 10.0.0.1
+#   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode_scaling.sh worker 172.20.213.8
 ################################################################################
 
 # ===== Parse arguments =====
@@ -42,8 +41,8 @@ if [ "$MODE" = "worker" ] && [ -z "$HEAD_NODE_IP" ]; then
 fi
 
 # ===== Model path =====
-MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
-# MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
+# MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
 
 # ===== Cluster config =====
 NNODES=2
@@ -126,8 +125,8 @@ echo "=========================================="
 
 # ===== Training config =====
 # CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_${TIMESTAMP}"
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251213-235435"
-# CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/rl-scaling"
+# CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251213-235435"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/rl-scaling"
 
 # Get current node IP
 CURRENT_IP=$(hostname -I | awk '{print $1}')
@@ -267,7 +266,7 @@ PYEOF
     # Start training
     echo "Starting training..."
     python3 -m verl.trainer.main \
-        config=progresslm/configs/multinodes.yaml \
+        config=progresslm/configs/mmnodes_scaling_8cd.yaml \
         worker.actor.model.model_path="${MODEL_PATH}" \
         worker.actor.model.tokenizer_path="${MODEL_PATH}" \
         trainer.save_checkpoint_path="${CHECKPOINT_DIR}" \
