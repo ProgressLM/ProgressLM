@@ -44,6 +44,7 @@ class Qwen3VLChat:
         system_prompt: str | None = None,
         verbose: bool = False,
         use_custom_prompt: bool = False,  # For compatibility, not used
+        device: str | None = None,  # Specific device to load model on (e.g., "cuda:0")
     ):
         """
         Initialize Qwen3VL model.
@@ -60,6 +61,8 @@ class Qwen3VLChat:
             system_prompt: System prompt for all generations
             verbose: Print debug information
             use_custom_prompt: Compatibility parameter (not used)
+            device: Specific device to load model on (e.g., "cuda:0", "cuda:1").
+                    If None, uses device_map="auto" for model parallelism.
         """
         self.model_path = model_path
         self.min_pixels = min_pixels
@@ -88,12 +91,25 @@ class Qwen3VLChat:
                 print(f"Detected standard model: {model_path}")
 
         # Load model with flash attention
-        self.model = MODEL_CLS.from_pretrained(
-            model_path,
-            torch_dtype=torch.bfloat16,
-            attn_implementation="flash_attention_2",
-            device_map="auto",
-        )
+        # If device is specified, load to that specific device (for multi-GPU data parallelism)
+        # Otherwise, use device_map="auto" for model parallelism
+        if device is not None:
+            # Load to specific device - for data parallelism with multiple workers
+            self.model = MODEL_CLS.from_pretrained(
+                model_path,
+                torch_dtype=torch.bfloat16,
+                attn_implementation="flash_attention_2",
+            ).to(device)
+            self.device = device
+        else:
+            # Use device_map="auto" for model parallelism across GPUs
+            self.model = MODEL_CLS.from_pretrained(
+                model_path,
+                torch_dtype=torch.bfloat16,
+                attn_implementation="flash_attention_2",
+                device_map="auto",
+            )
+            self.device = self.model.device
         self.model.eval()
 
         # Load processor
@@ -103,7 +119,7 @@ class Qwen3VLChat:
         torch.cuda.empty_cache()
 
         if self.verbose:
-            print(f"Model loaded successfully on device: {self.model.device}")
+            print(f"Model loaded successfully on device: {self.device}")
 
     def _prepare_content(self, inputs: list[dict[str, str]]) -> list[dict[str, str]]:
         """
@@ -173,7 +189,7 @@ class Qwen3VLChat:
             return_dict=True,
             return_tensors="pt"
         )
-        inputs = inputs.to(self.model.device)
+        inputs = inputs.to(self.device)
 
         # Generate
         generated_ids = self.model.generate(**inputs, **self.generate_kwargs)
@@ -238,7 +254,7 @@ class Qwen3VLChat:
             padding=True,
             return_tensors='pt'
         )
-        inputs = inputs.to(self.model.device)
+        inputs = inputs.to(self.device)
 
         # Generate
         generated_ids = self.model.generate(**inputs, **self.generate_kwargs)

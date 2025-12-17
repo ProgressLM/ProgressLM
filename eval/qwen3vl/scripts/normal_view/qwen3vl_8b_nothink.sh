@@ -1,23 +1,21 @@
 #!/bin/bash
-
 #####################################################################
-# Text Demo Progress Estimation - Qwen3VL-30B-MoE (NoThink)
+# Normal View (Single View) Visual Demo - Qwen3VL-8B (NoThink)
 #####################################################################
 
-MODEL_PATH="/projects/p32958/jianshu/weight/Qwen/Qwen3-VL-30B-A3B-Instruct"
-
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval.jsonl"
+MODEL_PATH="/projects/p32958/jianshu/weight/Qwen/Qwen3-VL-8B-Instruct"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/text_nothink"
-PROJECT_NAME="text_qwen3vl_30b_moe_nothink"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/normal_view"
+PROJECT_NAME="qwen3vl_8b_nothink"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
 GPU_IDS="0,1,2,3"
-BATCH_SIZE=2
+BATCH_SIZE=4
 NUM_INFERENCES=1
 TEMPERATURE=0.4
 TOP_P=0.9
@@ -29,7 +27,7 @@ LIMIT=-1
 VERBOSE=false
 
 echo "======================================================================"
-echo "Text Demo Progress Estimation - Qwen3VL-30B-MoE (NoThink)"
+echo "Normal View Visual Demo - Qwen3VL-8B (NoThink)"
 echo "======================================================================"
 echo "Model: $MODEL_PATH"
 echo "Output: $OUTPUT_FILE"
@@ -46,15 +44,14 @@ if [ ! -d "$MODEL_PATH" ]; then
 fi
 
 mkdir -p "$OUTPUT_DIR"
-
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EVAL_DIR="$(dirname "$SCRIPT_DIR")/codes"
+EVAL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")/codes"
 
 cd "$EVAL_DIR" || exit 1
 
-CMD="python run_text_demo_nothink.py \
+CMD="python run_visual_demo_nothink.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

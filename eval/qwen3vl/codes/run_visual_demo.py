@@ -6,7 +6,8 @@ import time
 import re
 from tqdm import tqdm
 from typing import List, Dict, Any, Optional, Tuple
-import torch
+# NOTE: torch and model imports are done lazily inside worker_process
+# to ensure CUDA_VISIBLE_DEVICES is set before CUDA initialization
 import traceback
 import multiprocessing as mp
 from multiprocessing import Manager, Process, Queue
@@ -16,10 +17,10 @@ import numpy as np
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Local imports
+# Local imports - these don't import torch
 from visual_demo_dataset import load_visual_demo_dataset, validate_image_paths
-from visual_demo_prompt import build_visual_demo_prompt_from_item, VISUAL_DEMO_SYSTEM_PROMPT
-from model import Qwen3VLChat
+from visual_demo_prompt import build_visual_demo_prompt_from_item
+# NOTE: Qwen3VLChat and VISUAL_DEMO_SYSTEM_PROMPT are imported lazily in worker_process
 
 
 def parse_visual_demo_response(response: str) -> Dict[str, Any]:
@@ -299,14 +300,22 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
 def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, result_queue: Queue):
     """Worker process for one GPU with batch inference."""
 
-    # Set this process to use only one GPU
+    # CRITICAL: Set CUDA_VISIBLE_DEVICES BEFORE importing torch/model
+    # This must happen before any CUDA initialization
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+
+    # Lazy imports - import AFTER setting CUDA_VISIBLE_DEVICES
+    # This ensures each worker only sees its assigned GPU
+    import torch
+    from model import Qwen3VLChat
+    from visual_demo_prompt import VISUAL_DEMO_SYSTEM_PROMPT
 
     # Create GPU-specific output file
     gpu_output_file = args.output_file.replace('.jsonl', f'_gpu{gpu_id}.jsonl')
 
     try:
         # Initialize model on this GPU
+        # Since CUDA_VISIBLE_DEVICES is set to single GPU, use "cuda:0"
         model = Qwen3VLChat(
             model_path=args.model_path,
             temperature=args.temperature,
@@ -317,7 +326,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
             system_prompt=VISUAL_DEMO_SYSTEM_PROMPT,
             min_pixels=args.min_pixels,
             max_pixels=args.max_pixels,
-            verbose=False
+            verbose=False,
+            device="cuda:0",  # Each worker sees only one GPU after CUDA_VISIBLE_DEVICES is set
         )
 
         # Process data in batches

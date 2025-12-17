@@ -1,46 +1,46 @@
 #!/bin/bash
 
 #####################################################################
-# Visual Demo Progress Estimation Evaluation Script - Qwen3VL-8B
+# Visual Demo Progress Estimation Evaluation Script - InternVL 8B
 #
 # This script runs progress estimation evaluation on Visual Demo dataset
-# using Qwen3-VL-8B-Instruct model with distributed GPU support.
+# using InternVL 8B model with single-process model parallelism.
 #####################################################################
 
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/jianshu/weight/Qwen/Qwen3-VL-8B-Instruct"
+MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-8B"
 
 # Dataset configuration
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/visual"
-PROJECT_NAME="visual_qwen3vl_8b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/internvl/visual_normal"
+PROJECT_NAME="internvl_8B"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
-GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=4  # Batch size per GPU
+GPU_IDS="0,1,2,3"
 
 # Inference configuration
 NUM_INFERENCES=1
 
 # Model parameters
-TEMPERATURE=0.4
+TEMPERATURE=0.6
 TOP_P=0.9
-TOP_K=50
 MAX_NEW_TOKENS=40000
-MIN_PIXELS=$((1280*28*28))
-MAX_PIXELS=$((5120*28*28))
+
+# InternVL specific parameters
+MAX_NUM_TILES=12
+INPUT_SIZE=448
 
 # Processing parameters
-LIMIT=-1  # -1 for all
+LIMIT=-1
 
 # Misc
 VERBOSE=false
@@ -48,16 +48,19 @@ VERBOSE=false
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Visual Demo Progress Estimation - Qwen3VL-8B"
+echo "Visual Demo Progress Estimation - InternVL 8B Evaluation"
 echo "======================================================================"
-echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
 echo "GPUs: $GPU_IDS"
-echo "Batch Size per GPU: $BATCH_SIZE"
 echo "======================================================================"
 
 # ======================== Validation ========================
+
+if [ -z "$DATASET_PATH" ]; then
+    echo "Error: DATASET_PATH is not set!"
+    exit 1
+fi
 
 if [ ! -f "$DATASET_PATH" ]; then
     echo "Error: Dataset file not found: $DATASET_PATH"
@@ -75,25 +78,24 @@ mkdir -p "$OUTPUT_DIR"
 
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
-# Get the script directory and change to codes directory
+# Get script and codes directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EVAL_DIR="$(dirname "$SCRIPT_DIR")/codes"
+INTERNVL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+CODES_DIR="$INTERNVL_DIR/codes"
 
-cd "$EVAL_DIR" || exit 1
+cd "$CODES_DIR" || exit 1
 
-# Build command
-CMD="python run_visual_demo.py \
+# Use single-process script for large models
+CMD="python run_visual_demo_single.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
-    --batch-size $BATCH_SIZE \
     --num-inferences $NUM_INFERENCES \
     --temperature $TEMPERATURE \
     --top-p $TOP_P \
-    --top-k $TOP_K \
     --max-new-tokens $MAX_NEW_TOKENS \
-    --min-pixels $MIN_PIXELS \
-    --max-pixels $MAX_PIXELS"
+    --max-num-tiles $MAX_NUM_TILES \
+    --input-size $INPUT_SIZE"
 
 if [ -n "$IMAGE_ROOT" ]; then
     CMD="$CMD --image-root $IMAGE_ROOT"
@@ -119,6 +121,7 @@ if [ $EXIT_CODE -eq 0 ]; then
     echo "======================================================================"
     echo " Completed | Results: $OUTPUT_FILE"
     echo "======================================================================"
+
     SUMMARY_FILE="${OUTPUT_FILE%.jsonl}_summary.json"
     if [ -f "$SUMMARY_FILE" ]; then
         echo ""

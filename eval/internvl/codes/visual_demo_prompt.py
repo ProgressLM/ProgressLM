@@ -1,5 +1,9 @@
+"""
+Visual Demo prompt templates for InternVL progress estimation (think version).
+"""
+
 from __future__ import annotations
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 
 
 # System prompt for inference mode
@@ -37,11 +41,11 @@ def format_visual_demo_progress_shifts(total_steps: int) -> str:
         total_steps: Total number of steps (not including the initial 0% state)
 
     Returns:
-        Formatted string with <image> tags and progress scores
+        Formatted string with image references and progress scores
 
     Example:
         >>> format_visual_demo_progress_shifts(4)
-        '<image> 0% <image> 25% <image> 50% <image> 75% <image> 100%'
+        'Image-1 (0%) -> Image-2 (25%) -> Image-3 (50%) -> Image-4 (75%) -> Image-5 (100%)'
     """
     # Number of images is total_steps + 1 (0% to 100%)
     num_images = total_steps + 1
@@ -50,9 +54,9 @@ def format_visual_demo_progress_shifts(total_steps: int) -> str:
     for i in range(num_images):
         # Calculate progress percentage for this image
         progress_percentage = round((i / total_steps) * 100)
-        parts.append(f"<image> {progress_percentage}%")
+        parts.append(f"Image-{i + 1} ({progress_percentage}%)")
 
-    return " ".join(parts)
+    return " -> ".join(parts)
 
 
 def build_visual_demo_prompt(
@@ -60,79 +64,59 @@ def build_visual_demo_prompt(
     visual_demo_paths: List[str],
     total_steps: int,
     stage_to_estimate_path: str,
-    min_pixels: int | None = None,
-    max_pixels: int | None = None
-) -> List[Dict[str, Any]]:
+) -> Tuple[List[str], str]:
     """
-    Build a multi-part prompt for Visual Demo progress estimation task (inference mode).
-
-    Prompt structure:
-    0. Text: VISUAL_DEMO_SYSTEM_PROMPT
-    1. Text: "The overall task goal is ..."
-    2. Text: "Here is the demonstration:"
-    3. Images: visual_demo (N images, variable length)
-    4. Text: Progress shift information (e.g., "<image> 0% <image> 25% <image> 50% <image> 75% <image> 100%")
-    5. Text: "Here is the current state that you need to estimate:"
-    6. Image: stage_to_estimate (1 image)
-    7. Text: Task instructions
+    Build a prompt for Visual Demo progress estimation task (InternVL format).
 
     Args:
         task_goal: Task goal description
-        visual_demo_paths: List of paths to demonstration images (variable length)
+        visual_demo_paths: List of paths to demonstration images
         total_steps: Total number of steps (not including the initial 0% state)
         stage_to_estimate_path: Path to the current state image
-        min_pixels: Minimum pixels for image processing
-        max_pixels: Maximum pixels for image processing
 
     Returns:
-        List of message dicts for the model
+        Tuple of (all_image_paths, prompt_text)
     """
-    msgs = []
+    # Collect all image paths: demo images + current state image
+    all_image_paths = visual_demo_paths + [stage_to_estimate_path]
 
-    # Part 0: System prompt and task goal
-    msgs.append({"type": "text", "value": VISUAL_DEMO_SYSTEM_PROMPT})
-    msgs.append({"type": "text", "value": f"The overall task goal is {task_goal}"})
+    # Build text prompt
+    prompt_parts = []
 
-    # Part 1: Demonstration introduction
-    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART1})
+    # System prompt
+    prompt_parts.append(VISUAL_DEMO_SYSTEM_PROMPT)
+    prompt_parts.append("")
 
-    # Part 2: Visual demo images (variable length)
-    for demo_img_path in visual_demo_paths:
-        img_msg = {"type": "image", "value": demo_img_path}
-        if min_pixels is not None:
-            img_msg["min_pixels"] = min_pixels
-        if max_pixels is not None:
-            img_msg["max_pixels"] = max_pixels
-        msgs.append(img_msg)
+    # Task goal
+    prompt_parts.append(f"The overall task goal is {task_goal}")
+    prompt_parts.append("")
 
-    # Part 3: Progress shift information
+    # Demonstration introduction
+    prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART1)
+
+    # Progress shift information (referencing images by number)
     progress_shifts = format_visual_demo_progress_shifts(total_steps)
-    msgs.append({"type": "text", "value": f"The progress shifts across all given visual demos is: {progress_shifts}"})
+    prompt_parts.append(f"The progress shifts across all given visual demos is: {progress_shifts}")
+    prompt_parts.append("")
 
-    # Part 4: Current state introduction
-    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART2})
+    # Current state introduction
+    prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART2)
+    prompt_parts.append(f"(This is Image-{len(visual_demo_paths) + 1})")
+    prompt_parts.append("")
 
-    # Part 5: Current state image (single image)
-    stage_img_msg = {"type": "image", "value": stage_to_estimate_path}
-    if min_pixels is not None:
-        stage_img_msg["min_pixels"] = min_pixels
-    if max_pixels is not None:
-        stage_img_msg["max_pixels"] = max_pixels
-    msgs.append(stage_img_msg)
+    # Task instructions
+    prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART3)
 
-    # Part 6: Task instructions
-    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART3})
+    prompt_text = "\n".join(prompt_parts)
 
-    return msgs
+    return all_image_paths, prompt_text
 
 
 def build_visual_demo_prompt_from_item(
     item: Dict[str, Any],
-    min_pixels: int | None = None,
-    max_pixels: int | None = None
-) -> List[Dict[str, Any]]:
+) -> Tuple[List[str], str]:
     """
-    Standalone function to build Visual Demo prompt from a dataset item (inference mode).
+    Build Visual Demo prompt from a dataset item (InternVL format).
 
     Args:
         item: Dataset item with required fields:
@@ -140,17 +124,13 @@ def build_visual_demo_prompt_from_item(
             - visual_demo: List[str]
             - total_steps: int
             - stage_to_estimate: str
-        min_pixels: Minimum pixels for image processing
-        max_pixels: Maximum pixels for image processing
 
     Returns:
-        List of message dicts for the model
+        Tuple of (all_image_paths, prompt_text)
     """
     return build_visual_demo_prompt(
         task_goal=item['task_goal'],
         visual_demo_paths=item['visual_demo'],
         total_steps=item['total_steps'],
         stage_to_estimate_path=item['stage_to_estimate'],
-        min_pixels=min_pixels,
-        max_pixels=max_pixels
     )
