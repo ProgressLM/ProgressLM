@@ -1,37 +1,36 @@
 #!/bin/bash
 #####################################################################
-# Human Activities Visual Demo - Qwen2.5-VL 7B Think Mode
+# Human Activities Text Demo - InternVL 14B (NoThink Mode)
 #####################################################################
 
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-7B-Instruct"
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/human/jsonl/visual_demo_human_activities.jsonl"
+MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-14B"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/human/jsonl/text_demo_human_activities.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/human/visual_think_7B"
-PROJECT_NAME="visual_think_7b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/internvl/human/text_nothink_14b"
+PROJECT_NAME="internvl_14B_text_nothink"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
 GPU_IDS="0,1,2,3"
-BATCH_SIZE=2
+BATCH_SIZE=10
 NUM_INFERENCES=1
-TEMPERATURE=0.4
+TEMPERATURE=0.6
 TOP_P=0.9
-TOP_K=50
-MAX_NEW_TOKENS=40000
-MIN_PIXELS=$((1280*28*28))
-MAX_PIXELS=$((5120*28*28))
+MAX_NEW_TOKENS=512
+MAX_NUM_TILES=4
+INPUT_SIZE=448
 LIMIT=-1
 VERBOSE=false
 
 echo "======================================================================"
-echo "Human Activities Visual Demo - Qwen2.5-VL 7B (Think Mode)"
+echo "Human Activities Text Demo - InternVL 14B (NoThink Mode)"
 echo "======================================================================"
-echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
+echo "GPUs: $GPU_IDS"
 echo "======================================================================"
 
 if [ ! -f "$DATASET_PATH" ]; then
@@ -48,12 +47,12 @@ mkdir -p "$OUTPUT_DIR"
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")"
-EVAL_DIR="$PROJECT_DIR/qwen25vl"
+INTERNVL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+CODES_DIR="$INTERNVL_DIR/codes"
 
-cd "$EVAL_DIR" || exit 1
+cd "$CODES_DIR" || exit 1
 
-CMD="python run_visual_demo.py \
+CMD="python run_text_demo_nothink_single.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
@@ -61,10 +60,9 @@ CMD="python run_visual_demo.py \
     --num-inferences $NUM_INFERENCES \
     --temperature $TEMPERATURE \
     --top-p $TOP_P \
-    --top-k $TOP_K \
     --max-new-tokens $MAX_NEW_TOKENS \
-    --min-pixels $MIN_PIXELS \
-    --max-pixels $MAX_PIXELS"
+    --max-num-tiles $MAX_NUM_TILES \
+    --input-size $INPUT_SIZE"
 
 if [ -n "$IMAGE_ROOT" ]; then
     CMD="$CMD --image-root $IMAGE_ROOT"

@@ -1,21 +1,21 @@
 #!/bin/bash
 #####################################################################
-# Human Activities Visual Demo - Qwen2.5-VL 7B Think Mode
+# Human Activities Visual Demo - Qwen3VL-2B
 #####################################################################
 
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-7B-Instruct"
+MODEL_PATH="/projects/p32958/chengxuan/models/Qwen3-VL-2B-Instruct"
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/human/jsonl/visual_demo_human_activities.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/human/visual_think_7B"
-PROJECT_NAME="visual_think_7b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/human/visual_2b"
+PROJECT_NAME="qwen3vl_2b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
 GPU_IDS="0,1,2,3"
-BATCH_SIZE=2
+BATCH_SIZE=4
 NUM_INFERENCES=1
 TEMPERATURE=0.4
 TOP_P=0.9
@@ -27,7 +27,7 @@ LIMIT=-1
 VERBOSE=false
 
 echo "======================================================================"
-echo "Human Activities Visual Demo - Qwen2.5-VL 7B (Think Mode)"
+echo "Human Activities Visual Demo - Qwen3VL-2B"
 echo "======================================================================"
 echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
@@ -48,8 +48,7 @@ mkdir -p "$OUTPUT_DIR"
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")"
-EVAL_DIR="$PROJECT_DIR/qwen25vl"
+EVAL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")/codes"
 
 cd "$EVAL_DIR" || exit 1
 

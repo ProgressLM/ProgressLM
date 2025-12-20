@@ -1,33 +1,33 @@
 #!/bin/bash
 #####################################################################
-# Human Activities Visual Demo - Qwen2.5-VL 7B Think Mode
+# Human Activities Text Demo - Qwen2.5-VL 3B NoThink Mode
 #####################################################################
 
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-7B-Instruct"
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/human/jsonl/visual_demo_human_activities.jsonl"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/human/jsonl/text_demo_human_activities.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/human/visual_think_7B"
-PROJECT_NAME="visual_think_7b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/human/text_nothink_3B"
+PROJECT_NAME="text_nothink_3b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
 GPU_IDS="0,1,2,3"
-BATCH_SIZE=2
+BATCH_SIZE=10
 NUM_INFERENCES=1
-TEMPERATURE=0.4
+TEMPERATURE=0.6
 TOP_P=0.9
 TOP_K=50
-MAX_NEW_TOKENS=40000
+MAX_NEW_TOKENS=4096
 MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 LIMIT=-1
 VERBOSE=false
 
 echo "======================================================================"
-echo "Human Activities Visual Demo - Qwen2.5-VL 7B (Think Mode)"
+echo "Human Activities Text Demo - Qwen2.5-VL 3B (NoThink Mode)"
 echo "======================================================================"
 echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
@@ -53,7 +53,7 @@ EVAL_DIR="$PROJECT_DIR/qwen25vl"
 
 cd "$EVAL_DIR" || exit 1
 
-CMD="python run_visual_demo.py \
+CMD="python run_text_demo_nothink.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
