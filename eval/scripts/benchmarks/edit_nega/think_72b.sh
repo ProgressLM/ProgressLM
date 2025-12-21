@@ -1,49 +1,40 @@
 #!/bin/bash
 
 #####################################################################
-# Visual Demo Progress Estimation Evaluation Script
+# Visual Demo Progress Estimation Evaluation Script - 72B Think Mode
 #
-# This script runs progress estimation evaluation on Visual Demo dataset
-# using Qwen2-VL model with distributed GPU support.
+# This script runs progress estimation evaluation on Edit Nega dataset
+# using Qwen2.5-VL 72B model with single process mode (model parallelism).
 #
-# Expected JSONL format:
-# {
-#   "id": "h5_tienkung_xsens_1rgb/brick_piled_then_press_thrice/2024-10-17-10-53-16",
-#   "task_goal": "Put the blue block next to the purple block in front.",
-#   "visual_demo": ["camera_top_0000.jpg", "camera_top_0041.jpg", "camera_top_0068.jpg", "camera_top_0191.jpg", "camera_top_0394.jpg"],
-#   "total_steps": "4",
-#   "stage_to_estimate": ["camera_top_0013.jpg"],
-#   "closest_idx": "1",
-#   "delta": "+7%",
-#   "progress_score": "8%",
-#   "data_source": "robomind_h5_tienkung_xsens_1rgb"
-# }
+# THINK MODE: Uses full prompt with intermediate reasoning steps
+# (<ref_think>, <ref>, <score_think> tags).
+#
+# Key features:
+# - Single process inference (no multi-GPU data parallelism)
+# - Model automatically distributed across 4 GPUs
+# - Optimized for 72B large model
 #####################################################################
 
 # ======================== Configuration ========================
 
-# Model configuration
-# MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
-MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_7b_sft"
-# MODEL_PATH="/projects/p32958/Results/full_model/global_step_148/actor/qwen25_vl_3b_rl_step_148"
+# Model configuration - 72B Model
+MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual-nega.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/7B_SFT"
-
-
-PROJECT_NAME="visual_7B_SFT"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/think_72B"
+PROJECT_NAME="visual_think_72B"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
-# GPU configuration
-GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=10  # Batch size per GPU (adjust based on VRAM and image count)
+# GPU configuration - Use all 4 GPUs for model parallelism
+GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
+BATCH_SIZE=5  # Batch size for 72B model
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -52,7 +43,7 @@ NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
-MAX_NEW_TOKENS=40000  # Increased for longer CoT reasoning chains
+MAX_NEW_TOKENS=4096  # Token limit for reasoning
 MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
@@ -65,13 +56,17 @@ VERBOSE=false  # Set to true for detailed output
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Visual Demo Progress Estimation - Evaluation"
+echo "Edit Nega Visual Demo Progress Estimation - 72B Think Mode"
 echo "======================================================================"
+echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
-echo "GPUs: $GPU_IDS"
-echo "Batch Size per GPU: $BATCH_SIZE"
+echo "GPUs: $GPU_IDS (Model Parallelism Mode)"
+echo "Batch Size: $BATCH_SIZE"
 echo "Inferences per Sample: $NUM_INFERENCES"
+echo "======================================================================"
+echo "NOTE: Using SINGLE PROCESS with MODEL PARALLELISM"
+echo "      Model will be automatically distributed across all 4 GPUs"
 echo "======================================================================"
 
 # ======================== Validation ========================
@@ -100,7 +95,7 @@ mkdir -p "$OUTPUT_DIR"
 
 # ======================== Run Inference ========================
 
-# Set CUDA visible devices to all GPUs
+# Set CUDA visible devices to all GPUs for model parallelism
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 # Get the script directory
@@ -111,8 +106,8 @@ EVAL_DIR="$PROJECT_DIR/qwen25vl"
 # Change to eval directory
 cd "$EVAL_DIR" || exit 1
 
-# Build command
-CMD="python run_visual_demo.py \
+# Build command - using single process for large model
+CMD="python run_visual_demo_single.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
@@ -140,7 +135,7 @@ if [ "$VERBOSE" = true ]; then
     CMD="$CMD --verbose"
 fi
 
-echo "Starting evaluation inference..."
+echo "Starting 72B model evaluation inference (think mode)..."
 echo ""
 
 # Execute command with logging
