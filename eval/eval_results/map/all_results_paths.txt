@@ -1,6 +1,6 @@
 # All JSONL Results Paths
 # Generated: 2024-12-20
-# Total files: 111
+# Total files: 121
 
 # =============================================
 # Model Family: new_pro_bench
@@ -11,6 +11,10 @@
 /projects/p32958/chengxuan/results/new_pro_bench/edit_nega/think_3B/visual_think_3B_20251220_043629/results.jsonl
 # type: think, size: 7B
 /projects/p32958/chengxuan/results/new_pro_bench/edit_nega/think_7B/visual_think_7B_20251220_054324/results.jsonl
+# type: think, size: 32B
+/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/think_32B/visual_think_32B_20251220_175247/results.jsonl
+# type: think, size: 72B
+/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/think_72B/visual_think_72B_20251220_175259/results.jsonl
 # type: nothink, size: 3B
 /projects/p32958/chengxuan/results/new_pro_bench/edit_nega/nothink_3B/visual_nothink_3B_20251219_194126/results.jsonl
 # type: nothink, size: 7B
@@ -97,6 +101,8 @@
 # =============================================
 
 # Task: edit_nega
+# type: think, size: 2b
+
 # type: think, size: 4b
 /projects/p32958/chengxuan/results/qwen3vl/edit_nega/qwen3vl_4b_20251220_074314/results.jsonl
 # type: think, size: 8b
@@ -115,6 +121,8 @@
 /projects/p32958/chengxuan/results/qwen3vl/edit_nega/qwen3vl_30b_moe_nothink_20251219_191302/results.jsonl
 
 # Task: text_nega (nega_text)
+# type: think, size: 2b
+/projects/p32958/chengxuan/results/qwen3vl/nega_text/qwen3vl_2b_20251220_184210/results.jsonl
 # type: think, size: 4b
 /projects/p32958/chengxuan/results/qwen3vl/nega_text/qwen3vl_4b_20251220_071000/results.jsonl
 # type: think, size: 8b
@@ -131,6 +139,8 @@
 /projects/p32958/chengxuan/results/qwen3vl/nega_text/qwen3vl_32b_nothink_20251217_233830/results.jsonl
 
 # Task: text_normal (normal_text)
+# type: think, size: 2b
+/projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_2b_20251220_184212/results.jsonl
 # type: think, size: 4b
 /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_4b_20251220_053603/results.jsonl
 # type: think, size: 8b
@@ -147,6 +157,8 @@
 /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_32b_nothink_20251217_233444/results.jsonl
 
 # Task: visual_multi_view (multi_view)
+# type: think, size: 2b
+/projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_2b_20251220_203520/results.jsonl
 # type: think, size: 4b
 /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_4b_20251220_042947/results.jsonl
 # type: think, size: 8b
@@ -163,6 +175,8 @@
 /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_32b_nothink_20251217_232659/results.jsonl
 
 # Task: visual_single_view (normal_view)
+# type: think, size: 2b
+/projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_2b_20251220_025352/results.jsonl
 # type: think, size: 4b
 /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_4b_20251220_025401/results.jsonl
 # type: think, size: 8b
@@ -207,8 +221,6 @@
 /projects/p32958/chengxuan/results/openai/multi_view_nothink/gpt5_mini_nothink_20251217_220229/results.jsonl
 
 # Task: visual_single_view (normal_view)
-# type: think, size: gpt5_mini
-/projects/p32958/chengxuan/results/openai/normal_view/gpt5_mini_20251217_190010/results.jsonl
 # type: nothink, size: gpt5
 /projects/p32958/chengxuan/results/openai/normal_view_nothink/gpt5_nothink_20251219_215355/results.jsonl
 # type: nothink, size: gpt5_mini
@@ -279,3 +291,37 @@
 /projects/p32958/chengxuan/results/internvl/visual_normal_nothink/internvl_14B_nothink_20251218_205628/results.jsonl
 # type: nothink, size: 38B
 /projects/p32958/chengxuan/results/internvl/visual_normal_nothink/internvl_38B_nothink_20251218_230326/results.jsonl
+
+# =============================================
+# Model Family: ProgressLM
+# =============================================
+
+# Task: edit_nega
+# type: sft, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/3B_SFT/visual_3B_SFT_20251219_193103/results.jsonl
+# type: rl, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/3B_RL/3B_rl_20251219_200230/results.jsonl
+
+# Task: text_nega
+# type: sft, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/text_nega/sft_3b/text_nega_sft_3b_20251217_022349/results.jsonl
+# type: rl, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/text_nega/rl_3b/text_nega_3b_20251217_022105/results.jsonl
+
+# Task: text_normal
+# type: sft, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/text_normal/sft_3b/text_normal_sft_3b_20251217_021805/results.jsonl
+# type: rl, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/text_normal/rl_3b/rl_3b_20251217_022013/results.jsonl
+
+# Task: visual_multi_view
+# type: sft, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/sft_3b_think/think_sft_3B_20251217_022124/results.jsonl
+# type: rl, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/rl_3B/visual_multi_view_rl_3B_20251217_021555/results.jsonl
+
+# Task: visual_single_view
+# type: sft, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_3B_SFT_think/visual_one_view_3B_SFT_20251217_025645/results.jsonl
+# type: rl, size: 3B
+/projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_3B_RL/visual_one_view_3B_RL_20251217_121528/results.jsonl

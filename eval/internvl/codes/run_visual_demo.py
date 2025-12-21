@@ -481,6 +481,19 @@ def run_visual_demo_inference(args):
 
     pbar.close()
 
+    # Drain queues to prevent blocking
+    while not progress_queue.empty():
+        try:
+            progress_queue.get_nowait()
+        except:
+            break
+
+    while not result_queue.empty():
+        try:
+            result_queue.get_nowait()
+        except:
+            break
+
     # Wait for all processes
     for p in processes:
         p.join(timeout=60)

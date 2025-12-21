@@ -53,7 +53,7 @@ EVAL_DIR="$PROJECT_DIR/qwen25vl"
 
 cd "$EVAL_DIR" || exit 1
 
-CMD="python run_visual_demo_nothink_single.py \
+CMD="python run_visual_demo_72B_nothink.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

@@ -5,6 +5,7 @@ ref_codes/VLAC/evo_vlac/examples/videos/test_images
 data/benchmark/teaser
 data/benchmark/human/images
 data/benchmark/human/images_compressed
+data/benchmark/human/results
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
