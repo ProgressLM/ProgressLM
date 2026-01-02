@@ -4,7 +4,7 @@
 #####################################################################
 
 # API Configuration
-API_KEY=""
+API_KEY="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"
 MODEL="gpt-5-mini"
 
 # Dataset Configuration
@@ -23,7 +23,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 MAX_WORKERS=5
 NUM_INFERENCES=1
 TEMPERATURE=1.0
-MAX_COMPLETION_TOKENS=3000
+MAX_COMPLETION_TOKENS=4000
 LIMIT=-1
 RESUME=false
 

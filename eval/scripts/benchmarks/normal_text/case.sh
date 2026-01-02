@@ -1,13 +1,10 @@
 #!/bin/bash
 
 #####################################################################
-# Text Demo Progress Estimation Evaluation Script - 3B No-Think Mode
+# Text Demo Progress Estimation Evaluation Script
 #
 # This script runs progress estimation evaluation on Text Demo dataset
-# using Qwen2-VL 3B model with distributed GPU support.
-#
-# NO-THINK MODE: Uses simplified prompt that asks for direct score output
-# without intermediate reasoning steps.
+# using Qwen2-VL model with distributed GPU support.
 #
 # Expected JSONL format:
 # {
@@ -25,25 +22,25 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
-
-
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_485/actor/qwen25vl_3b_rl_scale"
+# MODEL_PATH="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251213-235435/global_step_638/actor/qwen25vl_rl_retrain"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-pos-mini.jsonl"
+# DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-pos-mini.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/teaser/case/bowl_visual.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_normal/nothink_3b"
-PROJECT_NAME="text_normal_nothink_3b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/case"
+PROJECT_NAME="text_visual_case"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
-OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
+OUTPUT_FILE="${OUTPUT_DIR}/bowl.jsonl"
 LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
-GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=10  # Batch size per GPU (can be higher since only 1 image per sample)
+GPU_IDS="0"  # Comma-separated GPU IDs to use
+BATCH_SIZE=20  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -112,7 +109,7 @@ EVAL_DIR="$PROJECT_DIR/qwen25vl"
 cd "$EVAL_DIR" || exit 1
 
 # Build command
-CMD="python run_text_demo_nothink.py \
+CMD="python run_text_demo.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
