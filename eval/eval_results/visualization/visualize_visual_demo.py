@@ -105,7 +105,7 @@ class VisualDemoViewer:
 
             # Ref correctness filter
             if ref_correct_only:
-                if item.get("ref") != item.get("ground_truth_score"):
+                if item.get("ref") != item.get("closest_idx"):
                     continue
 
             self.filtered_data.append(item)

@@ -67,7 +67,8 @@ class ResultsViewer:
         self,
         source_filter: str,
         status_filter: str,
-        score_correct_only: bool
+        score_correct_only: bool,
+        ref_correct_only: bool
     ) -> Tuple[int, str]:
         """Apply filters and return updated slider max and count text."""
         self.filtered_data = []
@@ -86,6 +87,11 @@ class ResultsViewer:
             # Score correctness filter
             if score_correct_only:
                 if item.get("score") != item.get("ground_truth_score"):
+                    continue
+
+            # Ref correctness filter
+            if ref_correct_only:
+                if item.get("ref") != item.get("closest_idx"):
                     continue
 
             self.filtered_data.append(item)
@@ -174,9 +180,9 @@ def load_file(file_path: str):
     )
 
 
-def filter_data(source_filter: str, status_filter: str, score_correct_only: bool, current_idx: int):
+def filter_data(source_filter: str, status_filter: str, score_correct_only: bool, ref_correct_only: bool, current_idx: int):
     """Apply filters and update display."""
-    max_idx, count_text = viewer.apply_filters(source_filter, status_filter, score_correct_only)
+    max_idx, count_text = viewer.apply_filters(source_filter, status_filter, score_correct_only, ref_correct_only)
 
     # Reset to first case
     new_idx = 0
@@ -253,6 +259,11 @@ def create_ui():
                 value=False,
                 scale=1
             )
+            ref_correct_checkbox = gr.Checkbox(
+                label="Ref Correct Only",
+                value=False,
+                scale=1
+            )
 
         count_text = gr.Textbox(label="Case Count", interactive=False)
 
@@ -326,10 +337,10 @@ def create_ui():
         )
 
         # Filter change handlers
-        for filter_component in [source_dropdown, status_dropdown, score_correct_checkbox]:
+        for filter_component in [source_dropdown, status_dropdown, score_correct_checkbox, ref_correct_checkbox]:
             filter_component.change(
                 fn=filter_data,
-                inputs=[source_dropdown, status_dropdown, score_correct_checkbox, case_slider],
+                inputs=[source_dropdown, status_dropdown, score_correct_checkbox, ref_correct_checkbox, case_slider],
                 outputs=[
                     case_slider,
                     count_text,
