@@ -1,24 +1,26 @@
 #!/bin/bash
 
 set -x
+# set -euxo pipefail
 
 # ===== 🟢 路径设置 =====
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
-DATA_FILE="/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_5k_ready_for_training.jsonl"
+# 修改为你新的模型路径
+MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 
-# 固定时间戳以便复现实验
-TIMESTAMP="20251108-001944"
+# 自动生成时间戳
+# TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+TIMESTAMP="20251209-154236"
 
 # ===== 🟢 wandb 设置 =====
 export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
-export WANDB_PROJECT="progresslm_grpo_7b"
-export WANDB_RUN_GROUP="qwen2_5_vl_7b_progresslm_grpo"
-export WANDB_NAME="visual_demo_qwen2p5vl7b_5k_${TIMESTAMP}"
+export WANDB_PROJECT="progresslm_grpo"
+export WANDB_RUN_GROUP="qwen2_5_vl_3b_progresslm"
+export WANDB_NAME="visual_demo_qwen2p5vl3b_no_coin_${TIMESTAMP}"
 export WANDB_MODE="online"
 export WANDB_DIR="/projects/p32958/Results/wandb_logs"
 
 # ===== 🔴 统一缓存目录设置（避免磁盘配额超限） =====
-CACHE_ROOT="/gpfs/projects/p32876/chengxuan/.cache"
+CACHE_ROOT="/gpfs/projects/p32958/chengxuan/.cache"
 
 # HuggingFace 缓存
 export HF_HOME="$CACHE_ROOT/huggingface"
@@ -35,9 +37,9 @@ export TORCHINDUCTOR_CACHE_DIR="$CACHE_ROOT/torch/inductor"
 export TRITON_CACHE_DIR="$CACHE_ROOT/triton"
 
 # Ray 缓存和临时文件（使用超短路径避免 Unix socket 107 字节限制）
-export RAY_TMPDIR="/gpfs/projects/p32876/.r/tmp"
-export RAY_SESSION_DIR="/gpfs/projects/p32876/.r/session"
-export RAY_LOG_DIR="/gpfs/projects/p32876/.r/logs"
+export RAY_TMPDIR="/gpfs/projects/p32958/.r/tmp"
+export RAY_SESSION_DIR="/gpfs/projects/p32958/.r/session"  
+export RAY_LOG_DIR="/gpfs/projects/p32958/.r/logs"
 
 # 创建Ray目录
 mkdir -p "$RAY_TMPDIR" "$RAY_SESSION_DIR" "$RAY_LOG_DIR"
@@ -60,6 +62,7 @@ mkdir -p "$TRITON_CACHE_DIR"
 mkdir -p "$RAY_TMPDIR" "$RAY_SESSION_DIR" "$RAY_LOG_DIR"
 mkdir -p "$PYTHONPYCACHEPREFIX" "$XDG_CACHE_HOME" "$TMPDIR"
 
+# 注意：去掉 resume，让 wandb 新开一条记录
 unset WANDB_RUN_ID
 unset WANDB_RESUME
 
@@ -67,20 +70,11 @@ echo "WANDB 环境变量："
 env | grep WANDB
 
 # ===== 🟢 训练配置 =====
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_7b_rl/newest_5k_7b_${TIMESTAMP}"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_20251209-154236"
 
 python3 -m verl.trainer.main \
   config=progresslm/configs/visual_demo_grpo.yaml \
-  worker.actor.fsdp.torch_dtype=bfloat16 \
   worker.actor.model.model_path="${MODEL_PATH}" \
   worker.actor.model.tokenizer_path="${MODEL_PATH}" \
-  worker.actor.global_batch_size=8 \
-  data.rollout_batch_size=8 \
-  data.train_files="${DATA_FILE}" \
-  data.val_files="${DATA_FILE}" \
-  worker.rollout.n=4 \
-  worker.rollout.limit_images=24 \
-  worker.rollout.max_num_batched_tokens=30000 \
-  worker.rollout.gpu_memory_utilization=0.7 \
   trainer.save_checkpoint_path="${CHECKPOINT_DIR}" \
-  trainer.experiment_name="qwen2_5vl7b_grpo_5k_${TIMESTAMP}"
+  trainer.experiment_name="qwen2_5vl3b_grpo_new_${TIMESTAMP}"
