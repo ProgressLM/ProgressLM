@@ -156,25 +156,51 @@ a:hover {
   color: white;
 }
 
-/* Authors */
+/* Authors Box */
+.authors-box {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px 32px;
+  margin-top: 8px;
+  display: inline-block;
+}
+
 .authors {
-  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  color: var(--text-primary);
   font-size: 1.1rem;
 }
 
-.authors a {
+.author {
+  white-space: nowrap;
+}
+
+.author sup {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.equal-contribution {
+  margin-top: 12px;
+  margin-bottom: 0;
+  font-size: 0.9rem;
   color: var(--text-secondary);
+}
+
+.equal-contribution sup {
+  color: var(--accent-color);
+}
+
+.authors a {
+  color: var(--text-primary);
 }
 
 .authors a:hover {
   color: var(--accent-color);
-}
-
-.institution {
-  margin-top: 8px;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  opacity: 0.8;
 }
 
 /* Sections */
