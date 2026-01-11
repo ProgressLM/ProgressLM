@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ProgressLM: Towards Progress Reasoning in Vision-Language Models">
+    <meta name="keywords" content="Progress Reasoning, Vision-Language Models, VLM, Machine Learning, Deep Learning">
+    <meta name="author" content="Chengxuan Qian">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="ProgressLM">
+    <meta property="og:description" content="Towards Progress Reasoning in Vision-Language Models">
+    <meta property="og:type" content="website">
+
+    <title>ProgressLM - Progress Reasoning in Vision-Language Models</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Hero Section -->
+    <section id="hero">
+        <div class="container">
+            <!-- Logo placeholder - uncomment when you have a logo -->
+            <!-- <img src="assets/images/logo.png" alt="ProgressLM Logo" class="logo"> -->
+
+            <h1>ProgressLM</h1>
+            <p class="subtitle">Towards Progress Reasoning in Vision-Language Models</p>
+
+            <div class="buttons">
+                <a href="#" class="btn btn-primary">
+                    <i class="fas fa-file-pdf"></i> Paper (Coming Soon)
+                </a>
+                <a href="https://github.com/Raymond-Qiancx/ProgressLM" class="btn" target="_blank">
+                    <i class="fab fa-github"></i> Code
+                </a>
+                <a href="ProgressLM_Tech_Report.pdf" class="btn" target="_blank">
+                    <i class="fas fa-book"></i> Tech Report
+                </a>
+            </div>
+
+            <div class="authors">
+                <p>Chengxuan Qian</p>
+                <p class="institution"><!-- Institution to be added --></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Abstract Section -->
+    <section id="abstract">
+        <div class="container">
+            <h2>Abstract</h2>
+            <p>
+                ProgressLM is a research project focused on enabling progress reasoning capabilities in Vision-Language Models.
+                Our approach combines supervised fine-tuning (SFT) and reinforcement learning with GRPO to train models
+                that can understand and predict progress in both textual and visual demonstrations.
+            </p>
+            <p>
+                We introduce comprehensive benchmarks including <strong>prog-bench</strong> for programmatic tasks
+                and <strong>human-bench</strong> for human activity understanding, along with novel evaluation metrics
+                to measure progress reasoning capabilities.
+            </p>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo">
+        <div class="container">
+            <h2>Demonstrations</h2>
+            <div class="placeholder">
+                <i class="fas fa-video"></i>
+                <p>Demo videos and visualizations coming soon...</p>
+            </div>
+            <!-- Uncomment and add your demos when ready -->
+            <!--
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <img src="assets/images/demos/text_demo.gif" alt="Text Demo">
+                    <p>Text Demonstration</p>
+                </div>
+                <div class="demo-item">
+                    <img src="assets/images/demos/visual_demo.gif" alt="Visual Demo">
+                    <p>Visual Demonstration</p>
+                </div>
+                <div class="demo-item">
+                    <img src="assets/images/demos/human_activity.gif" alt="Human Activity">
+                    <p>Human Activity</p>
+                </div>
+            </div>
+            -->
+        </div>
+    </section>
+
+    <!-- Method Section -->
+    <section id="method">
+        <div class="container">
+            <h2>Method</h2>
+            <div class="placeholder" style="margin-bottom: 32px;">
+                <i class="fas fa-diagram-project"></i>
+                <p>Method overview figure coming soon...</p>
+            </div>
+
+            <div class="method-overview">
+                <div class="method-card">
+                    <h3><i class="fas fa-graduation-cap"></i> SFT Training</h3>
+                    <p>
+                        Supervised fine-tuning using LLaMA-Factory framework.
+                        Supports LoRA, QLoRA, and full fine-tuning with Qwen2.5-VL and Qwen3-VL architectures.
+                    </p>
+                </div>
+                <div class="method-card">
+                    <h3><i class="fas fa-brain"></i> RL Training (GRPO)</h3>
+                    <p>
+                        Reinforcement learning with Group Relative Policy Optimization using EasyR1 framework.
+                        Provides distributed training support with FSDP.
+                    </p>
+                </div>
+                <div class="method-card">
+                    <h3><i class="fas fa-chart-line"></i> Evaluation</h3>
+                    <p>
+                        Comprehensive evaluation pipeline with multiple metrics including VOC, Score Error,
+                        Ref Error, and N/A Recall for progress reasoning assessment.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benchmarks Section -->
+    <section id="benchmarks">
+        <div class="container">
+            <h2>Benchmarks</h2>
+
+            <div class="benchmark-grid">
+                <div class="benchmark-category">
+                    <h3><i class="fas fa-code"></i> prog-bench</h3>
+                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                        Programmatic task benchmarks for progress reasoning evaluation
+                    </p>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Text Demo (Normal)</li>
+                        <li><i class="fas fa-check"></i> Text Demo (Unanswerable)</li>
+                        <li><i class="fas fa-check"></i> Visual Demo (Same View)</li>
+                        <li><i class="fas fa-check"></i> Visual Demo (Cross View)</li>
+                        <li><i class="fas fa-check"></i> Visual Demo (Unanswerable)</li>
+                    </ul>
+                </div>
+
+                <div class="benchmark-category">
+                    <h3><i class="fas fa-person-walking"></i> human-bench</h3>
+                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                        Human activity benchmarks for progress reasoning evaluation
+                    </p>
+                    <ul>
+                        <li><i class="fas fa-check"></i> Text Demo (Human Activities)</li>
+                        <li><i class="fas fa-check"></i> Visual Demo (Human Activities)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="metrics">
+                <h3><i class="fas fa-ruler"></i> Evaluation Metrics</h3>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <strong>VOC</strong>
+                        <span>Trajectory Order Consistency</span>
+                    </div>
+                    <div class="metric-item">
+                        <strong>Score Error</strong>
+                        <span>Normalized Progress Score Error</span>
+                    </div>
+                    <div class="metric-item">
+                        <strong>Ref Error</strong>
+                        <span>Reference Step Index Error</span>
+                    </div>
+                    <div class="metric-item">
+                        <strong>N/A Recall</strong>
+                        <span>Unanswerable Detection Recall</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results">
+        <div class="container">
+            <h2>Results</h2>
+            <div class="placeholder" style="margin-bottom: 32px;">
+                <i class="fas fa-table"></i>
+                <p>Experimental results and comparisons coming soon...</p>
+            </div>
+
+            <h3 style="margin-bottom: 16px;">Supported Models</h3>
+            <div class="models-list">
+                <div class="model-badge">
+                    <i class="fas fa-robot"></i> Qwen2.5-VL (3B, 7B, 72B)
+                </div>
+                <div class="model-badge">
+                    <i class="fas fa-robot"></i> Qwen3-VL
+                </div>
+                <div class="model-badge">
+                    <i class="fas fa-robot"></i> InternVL
+                </div>
+                <div class="model-badge">
+                    <i class="fas fa-robot"></i> GPT-4V / GPT-4o
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Citation Section -->
+    <section id="citation">
+        <div class="container">
+            <h2>Citation</h2>
+            <p>If you find our work useful, please consider citing:</p>
+            <div class="bibtex-container">
+                <pre id="bibtex-content">@article{qian2025progresslm,
+  title={ProgressLM: Towards Progress Reasoning in Vision-Language Models},
+  author={Qian, Chengxuan},
+  year={2025}
+}</pre>
+                <button id="copy-btn"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>MIT License - Copyright 2025 Chengxuan Qian</p>
+            <p>
+                <a href="https://github.com/Raymond-Qiancx/ProgressLM" target="_blank">
+                    <i class="fab fa-github"></i> GitHub Repository
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>
