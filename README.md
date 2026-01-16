@@ -8,6 +8,13 @@
   <i>(* equal contribution)</i>
 </p>
 
+<p align="center">
+  <a href="https://progresslm.github.io/ProgressLM/"><img src="https://img.shields.io/badge/🌐-Website-blue" alt="Website" /></a>
+  <a href="https://github.com/Raymond-Qiancx/ProgressLM"><img src="https://img.shields.io/badge/GitHub-Code-black" alt="Code" /></a>
+  <a href="https://huggingface.co/collections/Raymond-Qiancx/progresslm"><img src="https://img.shields.io/badge/🤗-Model-orange" alt="Model" /></a>
+  <a href="https://huggingface.co/datasets/Raymond-Qiancx/ProgressLM-Dataset"><img src="https://img.shields.io/badge/🤗-Dataset-yellow" alt="Dataset" /></a>
+</p>
+
 ### Under Construction
 
 
