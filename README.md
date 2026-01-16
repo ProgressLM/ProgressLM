@@ -40,6 +40,16 @@ Progress annotated data is constructed along three key dimensions.
 This design allows us to disentangle perception, temporal reasoning, and uncertainty awareness in progress estimation.
 </p>
 
+### Overview of ProgressLM-Dataset
+
+<p align="center">
+  <img src="docs/imgs/statistics.png" width="100%" />
+</p>
+
+<p align="justify">
+Data statistics of <b>Progress-Bench</b> and <b>ProgressLM-45K</b> (25K for SFT while 20K for RL). Traj and Samp denote the numbers of task trajectories and sampled observations to be estimated, respectively. The upper-right panel shows the four distinct robotic embodiments included, while the lower-right panel visualizes the diversity of objects involved in task interactions.
+</p>
+
 ### Under Construction
 
 
