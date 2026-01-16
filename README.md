@@ -1,7 +1,7 @@
-<h1 align="center">
-  <img src="docs/imgs/icon.png" height="50" style="vertical-align: middle;" />&nbsp;
-  ProgressLM
-</h1>
+<p align="center">
+  <img src="docs/imgs/icon.png" height="50" />&nbsp;
+  <b><font size="7">ProgressLM</font></b>
+</p>
 <h3 align="center">
   <b><i>Towards Progress Reasoning in Vision-Language Models</i></b>
 </h3>
