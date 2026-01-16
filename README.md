@@ -2,7 +2,16 @@
   <img src="docs/imgs/icon.png" height="30" />&nbsp;ProgressLM: Towards Progress Reasoning in Vision-Language Models
 </h1>
 
+<p align="center">
+  Jianshu Zhang*, Chengxuan Qian*, Haosen Sun, Haoran Lu, Dingcheng Wang, Letian Xue, Han Liu
+  <br>
+  <i>(* equal contribution)</i>
+</p>
+
 ### Under Construction
+
+
+
 
 ## Installation
 
