@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ProgressLM: Towards Progress Reasoning in Vision-Language Models">
     <meta name="keywords" content="Progress Reasoning, Vision-Language Models, VLM, Machine Learning, Deep Learning">
-    <meta name="author" content="Chengxuan Qian">
+    <meta name="author" content="Jianshu Zhang, Chengxuan Qian, Haosen Sun, Haoran Lu, Dingcheng Wang, Letian Xue, Han Liu">
 
     <!-- Open Graph -->
     <meta property="og:title" content="ProgressLM">
@@ -29,21 +29,24 @@
     <!-- Hero Section -->
     <section id="hero">
         <div class="container">
-            <!-- Logo placeholder - uncomment when you have a logo -->
-            <!-- <img src="assets/images/logo.png" alt="ProgressLM Logo" class="logo"> -->
-
             <h1>ProgressLM</h1>
             <p class="subtitle">Towards Progress Reasoning in Vision-Language Models</p>
 
             <div class="buttons">
                 <a href="#" class="btn btn-primary">
-                    <i class="fas fa-file-pdf"></i> Paper (Coming Soon)
+                    <i class="fas fa-file-pdf"></i> Paper
                 </a>
-                <a href="https://github.com/Raymond-Qiancx/ProgressLM" class="btn" target="_blank">
+                <a href="https://github.com/ProgressLM/ProgressLM" class="btn" target="_blank">
                     <i class="fab fa-github"></i> Code
                 </a>
-                <a href="ProgressLM_Tech_Report.pdf" class="btn" target="_blank">
-                    <i class="fas fa-book"></i> Tech Report
+                <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-SFT" class="btn" target="_blank">
+                    <i class="fas fa-cube"></i> SFT Model
+                </a>
+                <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-RL" class="btn" target="_blank">
+                    <i class="fas fa-cube"></i> RL Model
+                </a>
+                <a href="https://huggingface.co/datasets/Raymond-Qiancx/ProgressLM-Dataset" class="btn" target="_blank">
+                    <i class="fas fa-database"></i> Dataset
                 </a>
             </div>
 
@@ -59,6 +62,10 @@
                 </div>
                 <p class="equal-contribution"><sup>*</sup> Equal Contribution</p>
             </div>
+
+            <div class="teaser-image">
+                <img src="imgs/teaser.png" alt="ProgressLM Teaser" style="width: 100%; max-width: 900px; margin-top: 32px; border-radius: 8px;">
+            </div>
         </div>
     </section>
 
@@ -67,43 +74,45 @@
         <div class="container">
             <h2>Abstract</h2>
             <p>
-                ProgressLM is a research project focused on enabling progress reasoning capabilities in Vision-Language Models.
-                Our approach combines supervised fine-tuning (SFT) and reinforcement learning with GRPO to train models
-                that can understand and predict progress in both textual and visual demonstrations.
+                Given a task demonstration and a single observation, the goal is to estimate <strong>how much of the task has already been completed</strong>.
+                Direct prediction can often judge whether the task is unfinished, but struggles to assign a well-calibrated progress score.
+                Progress reasoning instead follows a coarse-to-fine process: it first performs <strong>episodic retrieval</strong> to coarsely locate the observation along the demonstrated task,
+                then applies <strong>mental simulation</strong> to imagine the transition from the retrieved anchor to the current observation, enabling a fine-grained estimate of completed progress.
             </p>
             <p>
-                We introduce comprehensive benchmarks including <strong>prog-bench</strong> for programmatic tasks
-                and <strong>human-bench</strong> for human activity understanding, along with novel evaluation metrics
-                to measure progress reasoning capabilities.
+                <em>Can vision-language models acquire progress estimation as a general reasoning capability from a single observation?</em>
+                To systematically study this question, we select robotic manipulation tasks as a controlled and representative domain,
+                where task execution exhibits clear, interpretable, and temporally ordered progressions.
+                Each instance provides a task <strong>demonstration</strong> and a single <strong>observation</strong>,
+                and the model is required to predict a normalized <strong>progress score</strong> indicating how far the task has progressed.
             </p>
         </div>
     </section>
 
-    <!-- Demo Section -->
-    <section id="demo">
+    <!-- Benchmark Design Section -->
+    <section id="benchmark-design">
         <div class="container">
-            <h2>Demonstrations</h2>
-            <div class="placeholder">
-                <i class="fas fa-video"></i>
-                <p>Demo videos and visualizations coming soon...</p>
+            <h2>Benchmark Design</h2>
+            <p style="margin-bottom: 24px; color: var(--text-secondary); text-align: center;">
+                We design our benchmark along three key dimensions to comprehensively evaluate progress reasoning capabilities.
+            </p>
+            <div class="benchmark-design-image">
+                <img src="imgs/bench_curation.png" alt="Benchmark Design" style="width: 100%; max-width: 1000px; margin: 0 auto; display: block; border-radius: 8px;">
             </div>
-            <!-- Uncomment and add your demos when ready -->
-            <!--
-            <div class="demo-grid">
-                <div class="demo-item">
-                    <img src="assets/images/demos/text_demo.gif" alt="Text Demo">
-                    <p>Text Demonstration</p>
+            <div class="dimension-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 32px;">
+                <div class="dimension-card" style="background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--accent-color); margin-bottom: 8px;"><i class="fas fa-eye"></i> Demonstration Modality</h3>
+                    <p style="color: var(--text-secondary);">Text-based vs. vision-based demonstrations to test different input modalities.</p>
                 </div>
-                <div class="demo-item">
-                    <img src="assets/images/demos/visual_demo.gif" alt="Visual Demo">
-                    <p>Visual Demonstration</p>
+                <div class="dimension-card" style="background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--accent-color); margin-bottom: 8px;"><i class="fas fa-camera"></i> Viewpoint Correspondence</h3>
+                    <p style="color: var(--text-secondary);">Same-view vs. cross-view settings to evaluate spatial reasoning robustness.</p>
                 </div>
-                <div class="demo-item">
-                    <img src="assets/images/demos/human_activity.gif" alt="Human Activity">
-                    <p>Human Activity</p>
+                <div class="dimension-card" style="background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--accent-color); margin-bottom: 8px;"><i class="fas fa-question-circle"></i> Answerability</h3>
+                    <p style="color: var(--text-secondary);">Well-defined vs. ambiguous cases to test the model's ability to recognize unanswerable queries.</p>
                 </div>
             </div>
-            -->
         </div>
     </section>
 
@@ -146,6 +155,10 @@
     <section id="benchmarks">
         <div class="container">
             <h2>Benchmarks</h2>
+
+            <div class="statistics-image" style="margin-bottom: 32px;">
+                <img src="imgs/statistics.png" alt="Dataset Statistics" style="width: 100%; max-width: 900px; margin: 0 auto; display: block; border-radius: 8px;">
+            </div>
 
             <div class="benchmark-grid">
                 <div class="benchmark-category">
@@ -201,19 +214,16 @@
     <!-- Results Section -->
     <section id="results">
         <div class="container">
-            <h2>Results</h2>
-            <div class="placeholder" style="margin-bottom: 32px;">
-                <i class="fas fa-table"></i>
-                <p>Experimental results and comparisons coming soon...</p>
-            </div>
-
-            <h3 style="margin-bottom: 16px;">Supported Models</h3>
+            <h2>Supported Models</h2>
+            <p style="margin-bottom: 24px; color: var(--text-secondary); text-align: center;">
+                We provide evaluation scripts for a wide range of vision-language models.
+            </p>
             <div class="models-list">
                 <div class="model-badge">
-                    <i class="fas fa-robot"></i> Qwen2.5-VL (3B, 7B, 72B)
+                    <i class="fas fa-robot"></i> Qwen2.5-VL (3B, 7B, 32B, 72B)
                 </div>
                 <div class="model-badge">
-                    <i class="fas fa-robot"></i> Qwen3-VL
+                    <i class="fas fa-robot"></i> Qwen3-VL (2B, 4B, 8B, 32B, 30B-MoE)
                 </div>
                 <div class="model-badge">
                     <i class="fas fa-robot"></i> InternVL
@@ -222,6 +232,9 @@
                     <i class="fas fa-robot"></i> GPT-4V / GPT-4o
                 </div>
             </div>
+            <p style="margin-top: 16px; color: var(--text-secondary); text-align: center; font-size: 0.9em;">
+                Qwen3-VL supports both <strong>thinking</strong> and <strong>non-thinking</strong> modes for evaluation.
+            </p>
         </div>
     </section>
 
@@ -231,9 +244,10 @@
             <h2>Citation</h2>
             <p>If you find our work useful, please consider citing:</p>
             <div class="bibtex-container">
-                <pre id="bibtex-content">@article{qian2025progresslm,
+                <pre id="bibtex-content">@article{zhang2025progresslm,
   title={ProgressLM: Towards Progress Reasoning in Vision-Language Models},
-  author={Qian, Chengxuan},
+  author={Zhang, Jianshu and Qian, Chengxuan and Sun, Haosen and Lu, Haoran and Wang, Dingcheng and Xue, Letian and Liu, Han},
+  journal={arXiv preprint arXiv:2505.XXXXX},
   year={2025}
 }</pre>
                 <button id="copy-btn"><i class="fas fa-copy"></i> Copy</button>
@@ -244,9 +258,9 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>MIT License - Copyright 2025 Chengxuan Qian</p>
+            <p>MIT License - Copyright 2025 ProgressLM Team</p>
             <p>
-                <a href="https://github.com/Raymond-Qiancx/ProgressLM" target="_blank">
+                <a href="https://github.com/ProgressLM/ProgressLM" target="_blank">
                     <i class="fab fa-github"></i> GitHub Repository
                 </a>
             </p>
