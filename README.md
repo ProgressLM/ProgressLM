@@ -10,8 +10,9 @@
 
 <p align="center">
   <a href="https://progresslm.github.io/ProgressLM/"><img src="https://img.shields.io/badge/🌐-Website-blue?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/Raymond-Qiancx/ProgressLM"><img src="https://img.shields.io/badge/GitHub-Code-black?style=for-the-badge" alt="Code" /></a>
-  <a href="https://huggingface.co/collections/Raymond-Qiancx/progresslm"><img src="https://img.shields.io/badge/🤗-Model-orange?style=for-the-badge" alt="Model" /></a>
+  <a href="https://github.com/ProgressLM/ProgressLM/blob/main/public/ProgressLM_Tech_Report.pdf"><img src="https://img.shields.io/badge/📄-Paper-black?style=for-the-badge" alt="Paper" /></a>
+  <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-SFT"><img src="https://img.shields.io/badge/🤗-SFT Model-orange?style=for-the-badge" alt="SFT Model" /></a>
+  <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-RL"><img src="https://img.shields.io/badge/🤗-RL Model-orange?style=for-the-badge" alt="RL Model" /></a>
   <a href="https://huggingface.co/datasets/Raymond-Qiancx/ProgressLM-Dataset"><img src="https://img.shields.io/badge/🤗-Dataset-yellow?style=for-the-badge" alt="Dataset" /></a>
 </p>
 
@@ -21,6 +22,22 @@
 
 <p align="justify">
 Given a task demonstration and a single observation, the goal is to estimate <b>how much of the task has already been completed</b>. Direct prediction can often judge whether the task is unfinished, but struggles to assign a well-calibrated progress score. Progress reasoning instead follows a coarse-to-fine process: it first performs <b>episodic retrieval</b> to coarsely locate the observation along the demonstrated task, then applies <b>mental simulation</b> to imagine the transition from the retrieved anchor to the current observation, enabling a fine-grained estimate of completed progress.
+</p>
+
+<p align="justify">
+<b><i>Can vision-language models acquire progress estimation as a general reasoning capability from a single observation?</i></b> To systematically study this question, we select robotic manipulation tasks as a controlled and representative domain, where task execution exhibits clear, interpretable, and temporally ordered progressions. Each instance provides a task <i>demonstration</i> and a single <i>observation</i>, and the model is required to predict a normalized <i>progress score</i> indicating how far the task has progressed.
+</p>
+
+<p align="center">
+  <img src="docs/imgs/bench_curation.png" width="100%" />
+</p>
+
+<p align="justify">
+Progress annotated data is constructed along three key dimensions.
+<b>(i) Demonstration modality</b> compares vision-based demonstrations that present state trajectories with text-based demonstrations that provide step-by-step action descriptions.
+<b>(ii) Viewpoint correspondence</b> controls whether demonstrations and observations are captured from the same camera viewpoint or from different viewpoints.
+<b>(iii) Answerability</b> explicitly distinguishes between cases where progress is well-defined and cases where reliable estimation is inherently ambiguous.
+This design allows us to disentangle perception, temporal reasoning, and uncertainty awareness in progress estimation.
 </p>
 
 ### Under Construction
