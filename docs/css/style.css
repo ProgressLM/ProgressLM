@@ -47,11 +47,25 @@ h1, h2, h3, h4 {
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: 4rem;
   background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Title with Icon */
+.title-with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.title-icon {
+  height: 4rem;
+  width: auto;
 }
 
 h2 {
@@ -101,7 +115,7 @@ a:hover {
 }
 
 #hero h1 {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 #hero .subtitle {
@@ -509,7 +523,11 @@ footer a {
 /* Responsive Design */
 @media (max-width: 768px) {
   h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
+  }
+
+  .title-icon {
+    height: 2.5rem;
   }
 
   h2 {
@@ -548,7 +566,15 @@ footer a {
   }
 
   h1 {
-    font-size: 1.75rem;
+    font-size: 2rem;
+  }
+
+  .title-icon {
+    height: 2rem;
+  }
+
+  .title-with-icon {
+    gap: 10px;
   }
 
   #hero {
@@ -569,6 +595,38 @@ footer a {
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 section {
   animation: fadeIn 0.6s ease-out;
+}
+
+/* Hero Section Entry Animations */
+#hero .title-with-icon {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+#hero .subtitle {
+  animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+#hero .buttons {
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+#hero .authors-box {
+  animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+#hero .teaser-image {
+  animation: fadeInUp 0.8s ease-out 0.4s both;
 }
