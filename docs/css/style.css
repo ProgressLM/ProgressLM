@@ -236,8 +236,8 @@ a:hover {
 /* Collapsible Sections */
 .collapsible-section {
   background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: 2px solid var(--accent-color);
+  border-radius: 16px;
   overflow: hidden;
   max-width: 1000px;
   margin: 0 auto;
@@ -246,14 +246,15 @@ a:hover {
 .collapsible-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 24px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  justify-content: space-between;
+  padding: 24px 32px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-color), var(--gradient-end));
   cursor: pointer;
   list-style: none;
-  transition: background-color 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .collapsible-title::-webkit-details-marker {
@@ -261,21 +262,29 @@ a:hover {
 }
 
 .collapsible-title:hover {
-  background-color: var(--bg-tertiary);
+  opacity: 0.9;
 }
 
 .collapsible-title .collapse-icon {
-  color: var(--accent-color);
-  font-size: 1rem;
-  transition: transform 0.3s ease;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 300;
 }
 
-details.collapsible-section:not([open]) .collapse-icon {
-  transform: rotate(-90deg);
+/* Toggle plus/minus icon */
+details.collapsible-section .collapse-icon::before {
+  content: "\f067"; /* fa-plus */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+details.collapsible-section[open] .collapse-icon::before {
+  content: "\f068"; /* fa-minus */
 }
 
 .collapsible-content {
-  padding: 0 24px 24px;
+  padding: 32px;
+  background-color: var(--bg-primary);
 }
 
 /* Sections */
@@ -297,6 +306,7 @@ section:last-of-type {
   font-size: 1.1rem;
   line-height: 1.8;
   max-width: 900px;
+  margin: 0 auto;
   text-align: justify;
 }
 
