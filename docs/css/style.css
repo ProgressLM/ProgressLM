@@ -339,16 +339,11 @@ details.collapsible-section[open] .collapse-icon::before {
 /* Sections */
 section {
   padding: 80px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-section:last-of-type {
-  border-bottom: none;
 }
 
 /* Abstract */
 #abstract {
-  background-color: var(--bg-primary);
+  background-color: transparent;
 }
 
 #abstract h2 {
@@ -365,7 +360,7 @@ section:last-of-type {
 
 /* Demo Section */
 #demo {
-  background-color: var(--bg-secondary);
+  background-color: transparent;
 }
 
 .demo-grid {
@@ -425,7 +420,7 @@ section:last-of-type {
 
 /* Method Section */
 #method {
-  background-color: var(--bg-primary);
+  background-color: transparent;
 }
 
 .method-overview {
@@ -559,7 +554,7 @@ section:last-of-type {
 
 /* Results Section */
 #results {
-  background-color: var(--bg-primary);
+  background-color: transparent;
 }
 
 .models-list {
@@ -587,7 +582,7 @@ section:last-of-type {
 
 /* Citation Section */
 #citation {
-  background-color: var(--bg-secondary);
+  background-color: transparent;
 }
 
 .bibtex-container {
@@ -642,8 +637,7 @@ section:last-of-type {
 footer {
   padding: 40px 0;
   text-align: center;
-  background-color: var(--bg-primary);
-  border-top: 1px solid var(--border-color);
+  background-color: transparent;
 }
 
 footer p {
