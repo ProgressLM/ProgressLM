@@ -297,6 +297,41 @@ details.collapsible-section[open] .collapse-icon::before {
   color: #1a1a2e;
 }
 
+/* Result Subsections (for Performance section) */
+.result-subsection {
+  margin-bottom: 32px;
+  border-left: 4px solid var(--accent-color);
+  padding-left: 24px;
+}
+
+.result-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.subsection-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 16px;
+}
+
+.subsection-content {
+  background-color: #d4e5f7;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.subsection-content p {
+  margin: 0;
+  text-align: justify;
+  line-height: 1.8;
+  color: #2d3748;
+}
+
+.subsection-content p:not(:last-child) {
+  margin-bottom: 12px;
+}
+
 /* Sections */
 section {
   padding: 80px 0;

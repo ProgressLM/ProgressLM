@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="imgs/icon.png">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="css/style.css?v=4">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -168,12 +168,50 @@
         </div>
     </section>
 
+    <!-- Performance Section -->
+    <section id="performance">
+        <div class="container">
+            <details class="collapsible-section" open>
+                <summary class="collapsible-title">
+                    <span>Performance on Answerable Scenarios</span>
+                    <span class="collapse-icon"></span>
+                </summary>
+                <div class="collapsible-content">
+                    <!-- Subsection 1 -->
+                    <div class="result-subsection">
+                        <h4 class="subsection-title">How well do current VLMs perform at progress estimation?</h4>
+                        <div class="subsection-content">
+                            <img src="imgs/Tab1.png" alt="Table 1: Performance on Answerable Scenarios" style="width: 100%; border-radius: 8px; margin-bottom: 16px;">
+                            <p>Overall, current VLMs exhibit limited and highly variable progress estimation ability under direct prediction. Even strong models achieve only moderate performance and remain highly sensitive to the demonstration setting, while several models show abnormally low or even negative PRC, indicating distorted temporal ordering rather than meaningful ordinal progress reasoning. In addition, some models adopt overly conservative behaviors with elevated AFRR, rejecting answerable cases instead of producing calibrated progress scores.</p>
+                        </div>
+                    </div>
+
+                    <!-- Subsection 2 -->
+                    <div class="result-subsection">
+                        <h4 class="subsection-title">Does training-free progress reasoning help?</h4>
+                        <div class="subsection-content">
+                            <p>The training-free approach provides only conditional benefits: it tends to help large models improve temporal consistency (often reflected in PRC), but its effect is unstable and can be neutral or harmful for smaller models. This suggests that limited-capacity VLMs may imitate the structured format without truly improving progress understanding, leading to degraded pointwise accuracy (higher NSE) or increased rejection behavior (higher AFRR).</p>
+                        </div>
+                    </div>
+
+                    <!-- Subsection 3 -->
+                    <div class="result-subsection">
+                        <h4 class="subsection-title">Does training-based progress reasoning help?</h4>
+                        <div class="subsection-content">
+                            <p>Yes—explicit learning yields consistent and substantial improvements even at small model scale. Compared to the base model, PROGRESSLM improves both single-point progress accuracy (lower NSE) and trajectory-level temporal consistency (higher PRC), demonstrating that robust progress reasoning is not merely a consequence of scale. Notably, the reinforced variant further strengthens overall reliability, showing that progress reasoning can be effectively learned through targeted supervision and optimization rather than relying on prompting alone.</p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </section>
+
     <!-- Results Section -->
     <section id="results">
         <div class="container">
             <h2>Supported Models</h2>
             <p style="margin-bottom: 24px; color: var(--text-secondary); text-align: center;">
-                We provide evaluation scripts for a wide range of vision-language models.
+                We conduct extensive validation on open-source VLMs across different architectures and model scales.
             </p>
             <div class="models-list">
                 <div class="model-badge">
@@ -190,7 +228,7 @@
                 </div>
             </div>
             <p style="margin-top: 16px; color: var(--text-secondary); text-align: center; font-size: 0.9em;">
-                Qwen3-VL supports both <strong>thinking</strong> and <strong>non-thinking</strong> modes for evaluation.
+                All models support <strong>direct prediction</strong>, <strong>non-thinking</strong>, and <strong>thinking</strong> modes for evaluation.
             </p>
         </div>
     </section>
