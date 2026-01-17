@@ -123,7 +123,8 @@
                 <div class="collapsible-content">
                     <div class="scaling-images" style="margin-bottom: 24px;">
                         <img src="imgs/statistics.png" alt="Statistics" style="width: 100%; border-radius: 8px; margin-bottom: 16px;">
-                        <img src="imgs/bar-stat-combined.png" alt="Bar Statistics" style="width: 100%; border-radius: 8px;">
+                        <img src="imgs/bar-stat-combined.png" alt="Bar Statistics" style="width: 100%; border-radius: 8px; margin-bottom: 16px;">
+                        <img src="imgs/sankey_diagram.png" alt="Sankey Diagram" style="width: 100%; border-radius: 8px;">
                     </div>
                     <p style="text-align: justify; line-height: 1.8;">
                         To scale progress reasoning beyond a single embodiment or environment, we curate progress estimation data spanning single-arm manipulators, dual-arm systems, and humanoid robots, together with diverse object interactions. <strong>Progress-Bench</strong> evaluates models on thousands of observation queries grounded in real manipulation trajectories, while <strong>ProgressLM-45K</strong> further expands training coverage with large-scale supervised and reinforcement learning samples. This diversity encourages models to learn transferable progress cues—tracking long-horizon state evolution rather than overfitting to specific robots, viewpoints, or object appearances.
@@ -163,70 +164,6 @@
                         Comprehensive evaluation pipeline with multiple metrics including VOC, Score Error,
                         Ref Error, and N/A Recall for progress reasoning assessment.
                     </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Benchmarks Section -->
-    <section id="benchmarks">
-        <div class="container">
-            <h2>Benchmarks</h2>
-
-            <div class="statistics-image" style="margin-bottom: 32px;">
-                <img src="imgs/statistics.png" alt="Dataset Statistics" style="width: 100%; max-width: 900px; margin: 0 auto; display: block; border-radius: 8px;">
-            </div>
-
-            <div class="benchmark-grid">
-                <div class="benchmark-category">
-                    <h3><i class="fas fa-code"></i> prog-bench</h3>
-                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
-                        Programmatic task benchmarks for progress reasoning evaluation
-                    </p>
-                    <ul>
-                        <li><i class="fas fa-check"></i> Text Demo (Normal)</li>
-                        <li><i class="fas fa-check"></i> Text Demo (Unanswerable)</li>
-                        <li><i class="fas fa-check"></i> Visual Demo (Same View)</li>
-                        <li><i class="fas fa-check"></i> Visual Demo (Cross View)</li>
-                        <li><i class="fas fa-check"></i> Visual Demo (Unanswerable)</li>
-                    </ul>
-                </div>
-
-                <div class="benchmark-category">
-                    <h3><i class="fas fa-person-walking"></i> human-bench</h3>
-                    <p style="margin-bottom: 16px; color: var(--text-secondary);">
-                        Human activity benchmarks for progress reasoning evaluation
-                    </p>
-                    <ul>
-                        <li><i class="fas fa-check"></i> Text Demo (Human Activities)</li>
-                        <li><i class="fas fa-check"></i> Visual Demo (Human Activities)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="metrics">
-                <h3><i class="fas fa-ruler"></i> Evaluation Metrics</h3>
-                <div class="metrics-grid">
-                    <div class="metric-item">
-                        <strong>NSE ↓</strong>
-                        <span class="metric-name">Normalized Score Error</span>
-                        <span class="metric-desc">Measures single-point progress accuracy on answerable samples by quantifying the normalized deviation between the predicted progress score and ground truth.</span>
-                    </div>
-                    <div class="metric-item">
-                        <strong>PRC ↑</strong>
-                        <span class="metric-name">Progress Rank Correlation</span>
-                        <span class="metric-desc">Measures trajectory-level temporal consistency by evaluating whether predicted progress preserves the correct relative ordering along a task trajectory (Spearman rank correlation).</span>
-                    </div>
-                    <div class="metric-item">
-                        <strong>AFRR ↓</strong>
-                        <span class="metric-name">Answerable False Rejection Rate</span>
-                        <span class="metric-desc">Measures answerability awareness on answerable samples by computing the fraction of valid cases incorrectly predicted as unanswerable (N/A).</span>
-                    </div>
-                    <div class="metric-item">
-                        <strong>UDA ↑</strong>
-                        <span class="metric-name">Unanswerable Detection Accuracy</span>
-                        <span class="metric-desc">Measures unanswerable case recognition by computing the fraction of unanswerable samples correctly predicted as unanswerable (N/A).</span>
-                    </div>
                 </div>
             </div>
         </div>
