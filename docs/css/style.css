@@ -485,13 +485,13 @@ section:last-of-type {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
 .metric-item {
-  text-align: center;
-  padding: 16px;
+  text-align: left;
+  padding: 20px;
   background-color: var(--bg-secondary);
   border-radius: 8px;
 }
@@ -499,13 +499,23 @@ section:last-of-type {
 .metric-item strong {
   display: block;
   color: var(--accent-color);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   margin-bottom: 4px;
 }
 
-.metric-item span {
-  font-size: 0.9rem;
+.metric-item .metric-name {
+  display: block;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.metric-item .metric-desc {
+  display: block;
+  font-size: 0.85rem;
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 /* Results Section */

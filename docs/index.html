@@ -209,19 +209,23 @@
                 <div class="metrics-grid">
                     <div class="metric-item">
                         <strong>NSE ↓</strong>
-                        <span>Normalized Score Error</span>
+                        <span class="metric-name">Normalized Score Error</span>
+                        <span class="metric-desc">Measures single-point progress accuracy on answerable samples by quantifying the normalized deviation between the predicted progress score and ground truth.</span>
                     </div>
                     <div class="metric-item">
                         <strong>PRC ↑</strong>
-                        <span>Progress Rank Correlation</span>
+                        <span class="metric-name">Progress Rank Correlation</span>
+                        <span class="metric-desc">Measures trajectory-level temporal consistency by evaluating whether predicted progress preserves the correct relative ordering along a task trajectory (Spearman rank correlation).</span>
                     </div>
                     <div class="metric-item">
                         <strong>AFRR ↓</strong>
-                        <span>Answerable False Rejection Rate</span>
+                        <span class="metric-name">Answerable False Rejection Rate</span>
+                        <span class="metric-desc">Measures answerability awareness on answerable samples by computing the fraction of valid cases incorrectly predicted as unanswerable (N/A).</span>
                     </div>
                     <div class="metric-item">
                         <strong>UDA ↑</strong>
-                        <span>Unanswerable Detection Accuracy</span>
+                        <span class="metric-name">Unanswerable Detection Accuracy</span>
+                        <span class="metric-desc">Measures unanswerable case recognition by computing the fraction of unanswerable samples correctly predicted as unanswerable (N/A).</span>
                     </div>
                 </div>
             </div>
