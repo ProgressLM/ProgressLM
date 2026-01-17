@@ -321,7 +321,7 @@ section:last-of-type {
   line-height: 1.8;
   max-width: 900px;
   margin: 0 auto;
-  text-align: justify;
+  text-align: justify !important;
 }
 
 /* Demo Section */
