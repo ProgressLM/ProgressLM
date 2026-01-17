@@ -252,6 +252,7 @@ section:last-of-type {
   font-size: 1.1rem;
   line-height: 1.8;
   max-width: 900px;
+  text-align: justify;
 }
 
 /* Demo Section */
