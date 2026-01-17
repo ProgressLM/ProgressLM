@@ -312,12 +312,16 @@ section:last-of-type {
   background-color: var(--bg-primary);
 }
 
+#abstract h2 {
+  text-align: center;
+}
+
 #abstract p {
   font-size: 1.1rem;
   line-height: 1.8;
   max-width: 900px;
   margin: 0 auto;
-  text-align: center;
+  text-align: justify;
 }
 
 /* Demo Section */
