@@ -145,24 +145,21 @@
 
             <div class="method-overview">
                 <div class="method-card">
-                    <h3><i class="fas fa-graduation-cap"></i> SFT Training</h3>
+                    <h3><i class="fas fa-bolt"></i> Direct Prediction</h3>
                     <p>
-                        Supervised fine-tuning using LLaMA-Factory framework.
-                        Supports LoRA, QLoRA, and full fine-tuning with Qwen2.5-VL and Qwen3-VL architectures.
+                        The model directly outputs a progress percentage from the demonstration and the current observation, without any explicit reasoning decomposition.
                     </p>
                 </div>
                 <div class="method-card">
-                    <h3><i class="fas fa-brain"></i> RL Training (GRPO)</h3>
+                    <h3><i class="fas fa-comments"></i> Training-free Approach</h3>
                     <p>
-                        Reinforcement learning with Group Relative Policy Optimization using EasyR1 framework.
-                        Provides distributed training support with FSDP.
+                        We enforce a human-inspired two-stage progress reasoning process via structured prompting, where the model first performs <strong>episodic retrieval</strong> to locate a coarse anchor step, then applies <strong>mental simulation</strong> to infer fine-grained progress.
                     </p>
                 </div>
                 <div class="method-card">
-                    <h3><i class="fas fa-chart-line"></i> Evaluation</h3>
+                    <h3><i class="fas fa-graduation-cap"></i> Training-based Approach</h3>
                     <p>
-                        Comprehensive evaluation pipeline with multiple metrics including VOC, Score Error,
-                        Ref Error, and N/A Recall for progress reasoning assessment.
+                        We explicitly train the model to internalize episodic retrieval and mental simulation using <strong>cold-start supervised fine-tuning</strong> on <strong>ProgressLM-25K-CoT</strong> via <a href="https://github.com/hiyouga/LLaMA-Factory" target="_blank">LLaMA-Factory</a>, followed by <strong>GRPO-based reinforcement learning refinement</strong> on <strong>ProgressLM-20K-RL</strong> via <a href="https://github.com/hiyouga/EasyR1" target="_blank">EasyR1</a> and <a href="https://github.com/volcengine/verl" target="_blank">verl</a>, yielding <strong>ProgressLM</strong> with improved accuracy, robustness, and calibrated handling of unanswerable cases.
                     </p>
                 </div>
             </div>
