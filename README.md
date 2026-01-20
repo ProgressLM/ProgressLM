@@ -422,10 +422,7 @@ python run_visual_demo_nothink.py \
 
 | Metric | Description |
 |--------|-------------|
-| **VOC** | Trajectory Order Consistency - Spearman correlation of predicted progress order |
-| **Score Error** | Normalized error of predicted progress score |
-| **Ref Error** | Normalized error of predicted reference step index |
-| **N/A Recall** | Recall for unanswerable samples (predicting "n/a" correctly) |
+
 
 ### Other Model Evaluation
 
