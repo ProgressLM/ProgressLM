@@ -352,7 +352,7 @@ python run_text_demo.py \
     --image-root /path/to/images \
     --batch-size 100 \
     --temperature 0.6 \
-    --max-new-tokens 40000
+    --max-new-tokens 4096
 
 # Visual Demo Evaluation
 python run_visual_demo.py \
@@ -362,7 +362,7 @@ python run_visual_demo.py \
     --image-root /path/to/images \
     --batch-size 50 \
     --temperature 0.6 \
-    --max-new-tokens 40000
+    --max-new-tokens 4096
 
 # Nothink Mode
 python run_text_demo_nothink.py \
@@ -406,19 +406,8 @@ bash text_unanswer/qwen3vl_8b.sh     # Text unanswerable evaluation
 bash cross_view/qwen3vl_8b.sh    # Cross-view evaluation
 ```
 
-**Available Model Sizes:**
 
-| Model | Script Suffix | Parameters |
-|-------|---------------|------------|
-| Qwen3-VL-2B | `_2b.sh` | 2B |
-| Qwen3-VL-4B | `_4b.sh` | 4B |
-| Qwen3-VL-8B | `_8b.sh` | 8B |
-| Qwen3-VL-32B | `_32b.sh` | 32B |
-
-
-Add `_nothink` suffix for non-thinking mode (e.g., `qwen3vl_8b_nothink.sh`).
-
-#### InternVL
+#### Intern3.5-VL
 
 ```bash
 cd eval/internvl/codes
