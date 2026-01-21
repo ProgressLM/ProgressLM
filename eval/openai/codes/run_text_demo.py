@@ -116,8 +116,8 @@ def process_single_sample(
                 "ground_truth_score": format_score_string(gt_score) if gt_score is not None else "n/a",
                 "score_error": float('inf'),
                 "ref_error": float('inf'),
-                "ref_false_positive": False,
-                "score_false_positive": False,
+                "afrr_ref": False,
+                "afrr_score": False,
                 "response": f"Validation error: {error_msg}",
                 "meta_data": {
                     **sample,
@@ -146,8 +146,8 @@ def process_single_sample(
                 "ground_truth_score": format_score_string(gt_score) if gt_score is not None else "n/a",
                 "score_error": float('inf'),
                 "ref_error": float('inf'),
-                "ref_false_positive": False,
-                "score_false_positive": False,
+                "afrr_ref": False,
+                "afrr_score": False,
                 "response": f"API error: {api_result['error']}",
                 "meta_data": {
                     **sample,
@@ -198,8 +198,8 @@ def process_single_sample(
             "ground_truth_score": ground_truth_score_str,
             "score_error": evaluation_score,  # score 的相对误差
             "ref_error": ref_error,           # ref 的绝对误差
-            "ref_false_positive": ref_fp,
-            "score_false_positive": score_fp,
+            "afrr_ref": ref_fp,
+            "afrr_score": score_fp,
             "response": response,
             "meta_data": {
                 **sample,
@@ -220,8 +220,8 @@ def process_single_sample(
             "ground_truth_score": format_score_string(gt_score) if gt_score is not None else "n/a",
             "score_error": float('inf'),
             "ref_error": float('inf'),
-            "ref_false_positive": False,
-            "score_false_positive": False,
+            "afrr_ref": False,
+            "afrr_score": False,
             "response": f"Processing error: {str(e)}\n{traceback.format_exc()}",
             "meta_data": {
                 **sample,
@@ -344,9 +344,9 @@ def run_text_demo_evaluation(args):
                             valid_count += 1
                         if result['ref_error'] != float('inf'):
                             total_ref_error_sum += result['ref_error']
-                        if result['ref_false_positive']:
+                        if result['afrr_ref']:
                             ref_fp_count += 1
-                        if result['score_false_positive']:
+                        if result['afrr_score']:
                             score_fp_count += 1
                     else:
                         error_count += 1
@@ -369,8 +369,8 @@ def run_text_demo_evaluation(args):
                         "ground_truth_score": format_score_string(sample.get('progress_score')) if sample.get('progress_score') is not None else "n/a",
                         "score_error": float('inf'),
                         "ref_error": float('inf'),
-                        "ref_false_positive": False,
-                        "score_false_positive": False,
+                        "afrr_ref": False,
+                        "afrr_score": False,
                         "response": f"Execution error: {str(e)}",
                         "meta_data": {
                             **sample,
@@ -401,8 +401,8 @@ def run_text_demo_evaluation(args):
     error_rate = error_count / len(samples_to_process) if samples_to_process else 0.0
 
     # Calculate false positive rates
-    ref_fp_total = sum(1 for r in all_results if r.get('ref_false_positive', False))
-    score_fp_total = sum(1 for r in all_results if r.get('score_false_positive', False))
+    ref_fp_total = sum(1 for r in all_results if r.get('afrr_ref', False))
+    score_fp_total = sum(1 for r in all_results if r.get('afrr_score', False))
     ref_fp_rate = ref_fp_total / len(all_results) if all_results else 0.0
     score_fp_rate = score_fp_total / len(all_results) if all_results else 0.0
 
@@ -456,10 +456,10 @@ def run_text_demo_evaluation(args):
         "error_rate": error_rate,
         "mean_evaluation_score": mean_score,
         "mean_ref_error": mean_ref_error,
-        "ref_false_positive_count": ref_fp_total,
-        "score_false_positive_count": score_fp_total,
-        "ref_false_positive_rate": ref_fp_rate,
-        "score_false_positive_rate": score_fp_rate,
+        "afrr_ref_count": ref_fp_total,
+        "afrr_score_count": score_fp_total,
+        "afrr_ref_rate": ref_fp_rate,
+        "afrr_score_rate": score_fp_rate,
         "voc_mean": voc_metrics['voc_mean'],
         "voc_std": voc_metrics['voc_std'],
         "voc_trajectories_count": voc_metrics['voc_count'],

@@ -140,8 +140,8 @@ class ResultsViewer:
             f"**Progress Score:** {meta.get('progress_score', 'N/A')}",
             f"**Closest Idx:** {item.get('closest_idx', 'N/A')} | **Total Steps:** {meta.get('total_steps', 'N/A')}",
             "",
-            f"**Ref False Positive:** {item.get('ref_false_positive', 'N/A')}",
-            f"**Score False Positive:** {item.get('score_false_positive', 'N/A')}",
+            f"**Ref False Positive:** {item.get('afrr_ref', 'N/A')}",
+            f"**Score False Positive:** {item.get('afrr_score', 'N/A')}",
         ]
         metadata = "\n".join(metadata_lines)
 

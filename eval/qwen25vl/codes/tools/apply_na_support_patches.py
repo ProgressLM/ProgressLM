@@ -158,7 +158,7 @@ def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) 
         gt_score: Ground truth score (float or None)
 
     Returns:
-        (is_ref_false_positive, is_score_false_positive)
+        (is_afrr_ref, is_afrr_score)
     """
     # Check ref false positive
     gt_ref_is_na = (gt_ref is None)

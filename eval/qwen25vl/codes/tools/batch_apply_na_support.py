@@ -11,7 +11,7 @@ import os
 # Helper functions code to insert
 HELPER_FUNCTIONS = '''
 
-def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) -> Tuple[bool, bool]:
+def calculate_afrr(predicted_ref, predicted_score, gt_ref, gt_score) -> Tuple[bool, bool]:
     """
     Calculate false positive rates for ref and score.
 
@@ -30,7 +30,7 @@ def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) 
         gt_score: Ground truth score (float or None)
 
     Returns:
-        (is_ref_false_positive, is_score_false_positive)
+        (is_afrr_ref, is_afrr_score)
     """
     # Check ref false positive
     gt_ref_is_na = (gt_ref is None)
@@ -321,7 +321,7 @@ def process_file(filepath):
         modified = True
 
     # 4. Add helper functions if not present
-    if 'def calculate_false_positives' not in content:
+    if 'def calculate_afrr' not in content:
         # Find location after calculate_ref_error
         insert_pattern = re.compile(
             r'(def calculate_ref_error.*?return float\(absolute_error\))\n\n\ndef worker_process',

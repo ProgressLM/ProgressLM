@@ -84,7 +84,7 @@ def process_single_sample(
                 "score": None,
                 "ground_truth_score": format_score_string(gt_score) if gt_score is not None else "n/a",
                 "score_error": float('inf'),
-                "score_false_positive": False,
+                "afrr_score": False,
                 "response": f"Validation error: {error_msg}",
                 "meta_data": {
                     **sample,
@@ -110,7 +110,7 @@ def process_single_sample(
                 "score": None,
                 "ground_truth_score": format_score_string(gt_score) if gt_score is not None else "n/a",
                 "score_error": float('inf'),
-                "score_false_positive": False,
+                "afrr_score": False,
                 "response": f"API error: {api_result['error']}",
                 "meta_data": {
                     **sample,
@@ -148,7 +148,7 @@ def process_single_sample(
             "score": predicted_score_str,
             "ground_truth_score": ground_truth_score_str,
             "score_error": evaluation_score,
-            "score_false_positive": score_fp,
+            "afrr_score": score_fp,
             "response": response,
             "meta_data": {
                 **sample,
@@ -167,7 +167,7 @@ def process_single_sample(
             "score": None,
             "ground_truth_score": format_score_string(gt_score) if gt_score is not None else "n/a",
             "score_error": float('inf'),
-            "score_false_positive": False,
+            "afrr_score": False,
             "response": f"Processing error: {str(e)}\n{traceback.format_exc()}",
             "meta_data": {
                 **sample,
@@ -300,7 +300,7 @@ def run_visual_demo_evaluation(args):
                                 total_score_sum += result['score_error']
                                 valid_count += 1
 
-                        if result['score_false_positive']:
+                        if result['afrr_score']:
                             score_fp_count += 1
                     else:
                         error_count += 1
@@ -322,7 +322,7 @@ def run_visual_demo_evaluation(args):
                         "score": None,
                         "ground_truth_score": format_score_string(sample.get('progress_score')) if sample.get('progress_score') is not None else "n/a",
                         "score_error": float('inf'),
-                        "score_false_positive": False,
+                        "afrr_score": False,
                         "response": f"Execution error: {str(e)}",
                         "meta_data": {
                             **sample,
@@ -362,7 +362,7 @@ def run_visual_demo_evaluation(args):
     error_rate = error_count / len(samples_to_process) if samples_to_process else 0.0
 
     # Calculate false positive rates
-    score_fp_total = sum(1 for r in all_results if r.get('score_false_positive', False))
+    score_fp_total = sum(1 for r in all_results if r.get('afrr_score', False))
     score_fp_rate = score_fp_total / len(all_results) if all_results else 0.0
 
     # Calculate VOC metrics (using score field)
@@ -412,8 +412,8 @@ def run_visual_demo_evaluation(args):
         "na_gt_samples": na_total_count,
         "na_correct_count": na_correct_count,
         "na_ratio": na_ratio_final,
-        "score_false_positive_count": score_fp_total,
-        "score_false_positive_rate": score_fp_rate,
+        "afrr_score_count": score_fp_total,
+        "afrr_score_rate": score_fp_rate,
         "voc_mean": voc_metrics['voc_mean'],
         "voc_std": voc_metrics['voc_std'],
         "voc_trajectories_count": voc_metrics['voc_count'],

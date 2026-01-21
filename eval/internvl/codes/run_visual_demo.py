@@ -284,8 +284,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score is not None else "n/a",
                         "ref_score": float('inf'),
                         "pred_score": float('inf'),
-                        "ref_false_positive": False,
-                        "score_false_positive": False,
+                        "afrr_ref": False,
+                        "afrr_score": False,
                         "response": f"Validation error: {error_msg}",
                         "meta_data": {**item, "status": "failed"}
                     }
@@ -343,8 +343,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "ground_truth_score": ground_truth_score_str,
                             "ref_score": evaluation_score,
                             "pred_score": ref_error,
-                            "ref_false_positive": ref_fp,
-                            "score_false_positive": score_fp,
+                            "afrr_ref": ref_fp,
+                            "afrr_score": score_fp,
                             "response": response,
                             "meta_data": {**item, "status": "failed" if has_error else "success"}
                         }
@@ -361,8 +361,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score is not None else "n/a",
                             "ref_score": float('inf'),
                             "pred_score": float('inf'),
-                            "ref_false_positive": False,
-                            "score_false_positive": False,
+                            "afrr_ref": False,
+                            "afrr_score": False,
                             "response": f"Error processing response: {str(e)}",
                             "meta_data": {**item, "status": "failed"}
                         }
@@ -381,8 +381,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score is not None else "n/a",
                         "ref_score": float('inf'),
                         "pred_score": float('inf'),
-                        "ref_false_positive": False,
-                        "score_false_positive": False,
+                        "afrr_ref": False,
+                        "afrr_score": False,
                         "response": f"Batch inference error: {str(e)}",
                         "meta_data": {**item, "status": "failed"}
                     }

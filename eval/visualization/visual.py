@@ -165,8 +165,8 @@ class VisualDemoViewer:
             f"**Total Steps:** {meta.get('total_steps', 'N/A')}",
             f"**Delta:** {meta.get('delta', 'N/A')}",
             "",
-            f"**Ref False Positive:** {item.get('ref_false_positive', 'N/A')}",
-            f"**Score False Positive:** {item.get('score_false_positive', 'N/A')}",
+            f"**Ref False Positive:** {item.get('afrr_ref', 'N/A')}",
+            f"**Score False Positive:** {item.get('afrr_score', 'N/A')}",
         ]
         metadata = "\n".join(metadata_lines)
 

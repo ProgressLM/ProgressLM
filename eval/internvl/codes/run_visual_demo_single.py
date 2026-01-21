@@ -276,8 +276,8 @@ def main():
                         "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
                         "ref_score": evaluation_score,
                         "pred_score": ref_error,
-                        "ref_false_positive": ref_fp,
-                        "score_false_positive": score_fp,
+                        "afrr_ref": ref_fp,
+                        "afrr_score": score_fp,
                         "response": response,
                         "meta_data": {**item, "status": "failed" if has_error else "success"}
                     }

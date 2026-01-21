@@ -194,7 +194,7 @@ def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) 
         gt_score: Ground truth score (float or None)
 
     Returns:
-        (is_ref_false_positive, is_score_false_positive)
+        (is_afrr_ref, is_afrr_score)
     """
     # Check ref false positive
     gt_ref_is_na = (gt_ref is None)
@@ -367,8 +367,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "ground_truth_score": ground_truth_score_str,
                             "ref_score": float('inf'),
                             "pred_score": float('inf'),
-                            "ref_false_positive": False,
-                            "score_false_positive": False,
+                            "afrr_ref": False,
+                            "afrr_score": False,
                             "response": f"Validation error: {error_msg}",
                             "meta_data": {
                                 **item,  # Include all original data
@@ -452,8 +452,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "ground_truth_score": ground_truth_score_str,
                             "ref_score": evaluation_score,
                             "pred_score": ref_error,
-                            "ref_false_positive": ref_fp,
-                            "score_false_positive": score_fp,
+                            "afrr_ref": ref_fp,
+                            "afrr_score": score_fp,
                             "response": response,
                             "meta_data": {
                                 **item,  # Include all original data
@@ -482,8 +482,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "ground_truth_score": ground_truth_score_str,
                             "ref_score": float('inf'),
                             "pred_score": float('inf'),
-                            "ref_false_positive": False,
-                            "score_false_positive": False,
+                            "afrr_ref": False,
+                            "afrr_score": False,
                             "response": f"Processing error: {str(e)}\nResponse: {response if response else ''}",
                             "meta_data": {
                                 **item,  # Include all original data
@@ -510,8 +510,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "ground_truth_score": ground_truth_score_str,
                         "ref_score": float('inf'),
                         "pred_score": float('inf'),
-                        "ref_false_positive": False,
-                        "score_false_positive": False,
+                        "afrr_ref": False,
+                        "afrr_score": False,
                         "response": f"Batch error: {str(e)}",
                         "meta_data": {
                             **item,  # Include all original data
@@ -888,8 +888,8 @@ def run_visual_demo_inference(args):
     error_rate = error_count / len(all_results) if all_results else 0.0
 
     # Calculate false positive rates
-    ref_fp_total = sum(1 for r in all_results if r.get('ref_false_positive', False))
-    score_fp_total = sum(1 for r in all_results if r.get('score_false_positive', False))
+    ref_fp_total = sum(1 for r in all_results if r.get('afrr_ref', False))
+    score_fp_total = sum(1 for r in all_results if r.get('afrr_score', False))
     ref_fp_rate = ref_fp_total / len(all_results) if all_results else 0.0
     score_fp_rate = score_fp_total / len(all_results) if all_results else 0.0
 
@@ -944,10 +944,10 @@ def run_visual_demo_inference(args):
         "mean_evaluation_score_valid": mean_score_valid,
         "mean_ref_error_all": mean_ref_error,
         "mean_ref_error_valid": mean_ref_error_valid,
-        "ref_false_positive_count": ref_fp_total,
-        "score_false_positive_count": score_fp_total,
-        "ref_false_positive_rate": ref_fp_rate,
-        "score_false_positive_rate": score_fp_rate,
+        "afrr_ref_count": ref_fp_total,
+        "afrr_score_count": score_fp_total,
+        "afrr_ref_rate": ref_fp_rate,
+        "afrr_score_rate": score_fp_rate,
         "voc_mean": voc_metrics['voc_mean'],
         "voc_std": voc_metrics['voc_std'],
         "voc_trajectories_count": voc_metrics['voc_count'],

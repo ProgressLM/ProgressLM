@@ -422,6 +422,10 @@ python run_visual_demo_nothink.py \
 
 | Metric | Description |
 |--------|-------------|
+| **NSE** (Normalized Score Error) | Measures single-point progress accuracy on answerable samples by quantifying the normalized deviation between the predicted progress score and ground truth |
+| **PRC** (Progress Rank Correlation) | Measures trajectory-level temporal consistency by evaluating whether predicted progress preserves the correct relative ordering along a task trajectory (Spearman rank correlation) |
+| **AFRR** (Answerable False Rejection Rate) | Measures answerability awareness on answerable samples by computing the fraction of valid cases incorrectly predicted as unanswerable (N/A) |
+| **UDA** (Unanswerable Detection Accuracy) | Measures unanswerable case recognition by computing the fraction of unanswerable samples correctly predicted as unanswerable (N/A) |
 
 
 ### Other Model Evaluation

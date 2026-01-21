@@ -3,9 +3,8 @@
 Batch Calculation Script for Model Evaluation Metrics
 
 This script processes all model results from all_results_paths.txt and calculates:
-- VOC (Trajectory Order Consistency) for all models
-- SCORE error for all models
-- REF error for think models only
+- PRC (Progress Rank Correlation) for all models
+- NSE (Normalized Score Error) for all models
 
 Uses multiprocessing for faster execution.
 """
@@ -69,28 +68,28 @@ def parse_ref(ref_str: Optional[str]) -> Optional[int]:
         return None
 
 
-# ==================== Error Calculations ====================
+# ==================== NSE Calculations ====================
 
-def calculate_score_error(gt: float, pred: float) -> float:
-    """Normalized score error: |gt - pred| / max(gt, 1 - gt)"""
+def calculate_nse_score(gt: float, pred: float) -> float:
+    """NSE (Normalized Score Error): |gt - pred| / max(gt, 1 - gt)"""
     max_possible = max(gt, 1.0 - gt)
     if max_possible == 0:
         return 0.0
     return abs(gt - pred) / max_possible
 
 
-def calculate_ref_error(gt_ref: int, pred_ref: int, num_demos: int) -> float:
-    """Normalized ref error: |gt_ref - pred_ref| / max(gt_ref - 1, num_demos - gt_ref)"""
+def calculate_nse_ref(gt_ref: int, pred_ref: int, num_demos: int) -> float:
+    """NSE for ref: |gt_ref - pred_ref| / max(gt_ref - 1, num_demos - gt_ref)"""
     max_possible = max(gt_ref - 1, num_demos - gt_ref)
     if max_possible == 0:
         return 0.0
     return abs(gt_ref - pred_ref) / max_possible
 
 
-# ==================== VOC Calculation ====================
+# ==================== PRC Calculation ====================
 
-def calculate_voc(results: List[Dict], pred_field: str) -> Dict:
-    """Calculate VOC using Spearman correlation with sample-level N/A filtering."""
+def calculate_prc(results: List[Dict], pred_field: str) -> Dict:
+    """Calculate PRC (Progress Rank Correlation) using Spearman correlation with sample-level N/A filtering."""
     # Group by trajectory ID
     trajectories = defaultdict(list)
     total_samples = 0
@@ -114,8 +113,8 @@ def calculate_voc(results: List[Dict], pred_field: str) -> Dict:
                 'pred_score': pred_score
             })
 
-    # Calculate VOC for each trajectory
-    voc_values = []
+    # Calculate PRC for each trajectory
+    prc_values = []
     skipped_all_na = 0
     skipped_single = 0
     skipped_constant_pred = 0
@@ -149,7 +148,7 @@ def calculate_voc(results: List[Dict], pred_field: str) -> Dict:
         # Calculate Spearman correlation
         correlation, p_value = spearmanr(gt_scores, pred_scores)
         if not np.isnan(correlation):
-            voc_values.append(correlation)
+            prc_values.append(correlation)
 
     valid_samples = total_samples - total_na_samples
     sample_coverage = valid_samples / total_samples if total_samples > 0 else 0.0
@@ -159,29 +158,29 @@ def calculate_voc(results: List[Dict], pred_field: str) -> Dict:
         'valid_samples': valid_samples,
         'sample_coverage': sample_coverage,
         'total_trajectories': len(trajectories),
-        'valid_trajectories': len(voc_values),
+        'valid_trajectories': len(prc_values),
     }
 
-    if voc_values:
+    if prc_values:
         result.update({
-            'voc_mean': float(np.mean(voc_values)),
-            'voc_std': float(np.std(voc_values)),
+            'prc_mean': float(np.mean(prc_values)),
+            'prc_std': float(np.std(prc_values)),
         })
     else:
         result.update({
-            'voc_mean': None,
-            'voc_std': None,
+            'prc_mean': None,
+            'prc_std': None,
         })
 
     return result
 
 
-# ==================== Error Calculations ====================
+# ==================== NSE Batch Calculations ====================
 
-def calculate_errors(results: List[Dict], format_type: str) -> Dict:
-    """Calculate score and ref errors."""
-    score_errors = []
-    ref_errors = []
+def calculate_nse_errors(results: List[Dict], format_type: str) -> Dict:
+    """Calculate NSE (Normalized Score Error) for score and ref."""
+    nse_score_errors = []
+    nse_ref_errors = []
 
     for r in results:
         meta = r.get('meta_data', {})
@@ -197,33 +196,33 @@ def calculate_errors(results: List[Dict], format_type: str) -> Dict:
             pred_score = parse_score(r.get('predicted_score'))
             pred_ref = None
 
-        # Calculate score errors
+        # Calculate NSE for score
         if gt_score is not None and pred_score is not None:
-            score_err = calculate_score_error(gt_score, pred_score)
-            if score_err != float('inf'):
-                score_errors.append(score_err)
+            nse_score = calculate_nse_score(gt_score, pred_score)
+            if nse_score != float('inf'):
+                nse_score_errors.append(nse_score)
 
-        # Calculate ref errors (only for ref_score format)
+        # Calculate NSE for ref (only for ref_score format)
         if format_type == 'ref_score' and gt_ref is not None and pred_ref is not None:
-            ref_err = calculate_ref_error(gt_ref, pred_ref, num_demos)
-            if ref_err != float('inf'):
-                ref_errors.append(ref_err)
+            nse_ref = calculate_nse_ref(gt_ref, pred_ref, num_demos)
+            if nse_ref != float('inf'):
+                nse_ref_errors.append(nse_ref)
 
     result = {}
 
-    if score_errors:
-        result['score_error_mean'] = float(np.mean(score_errors))
-        result['score_error_std'] = float(np.std(score_errors))
+    if nse_score_errors:
+        result['nse_score_mean'] = float(np.mean(nse_score_errors))
+        result['nse_score_std'] = float(np.std(nse_score_errors))
     else:
-        result['score_error_mean'] = None
-        result['score_error_std'] = None
+        result['nse_score_mean'] = None
+        result['nse_score_std'] = None
 
-    if ref_errors:
-        result['ref_error_mean'] = float(np.mean(ref_errors))
-        result['ref_error_std'] = float(np.std(ref_errors))
+    if nse_ref_errors:
+        result['nse_ref_mean'] = float(np.mean(nse_ref_errors))
+        result['nse_ref_std'] = float(np.std(nse_ref_errors))
     else:
-        result['ref_error_mean'] = None
-        result['ref_error_std'] = None
+        result['nse_ref_mean'] = None
+        result['nse_ref_std'] = None
 
     return result
 
@@ -284,15 +283,15 @@ def process_single_model(args: Tuple[Dict, int, int]) -> Dict:
         format_type, pred_field = detect_format(results[0])
 
         # Calculate metrics
-        voc_metrics = calculate_voc(results, pred_field)
-        error_metrics = calculate_errors(results, format_type)
+        prc_metrics = calculate_prc(results, pred_field)
+        nse_metrics = calculate_nse_errors(results, format_type)
 
         # Combine results
         result = {
             'model_info': model_info,
             'format_type': format_type,
-            'voc': voc_metrics,
-            'errors': error_metrics,
+            'prc': prc_metrics,
+            'nse': nse_metrics,
             'idx': idx,
             'total': total,
             'success': True
@@ -399,23 +398,23 @@ def write_results(results: List[Dict], output_path: str, summary_path: str):
         f.write("=" * 80 + "\n")
         f.write("SUMMARY TABLE (Tab-Separated)\n")
         f.write("=" * 80 + "\n")
-        f.write("ModelFamily\tTask\tType\tSize\tVOC_Mean\tVOC_Std\tScore_Mean\tScore_Std\tRef_Mean\tRef_Std\tSamples\n")
+        f.write("ModelFamily\tTask\tType\tSize\tPRC_Mean\tPRC_Std\tNSE_Score_Mean\tNSE_Score_Std\tNSE_Ref_Mean\tNSE_Ref_Std\tSamples\n")
 
         for r in successful:
             mi = r['model_info']
-            voc = r['voc']
-            err = r['errors']
+            prc = r['prc']
+            nse = r['nse']
 
-            voc_mean = f"{voc['voc_mean']:.4f}" if voc['voc_mean'] is not None else "N/A"
-            voc_std = f"{voc['voc_std']:.4f}" if voc['voc_std'] is not None else "N/A"
-            score_mean = f"{err['score_error_mean']:.4f}" if err['score_error_mean'] is not None else "N/A"
-            score_std = f"{err['score_error_std']:.4f}" if err['score_error_std'] is not None else "N/A"
-            ref_mean = f"{err['ref_error_mean']:.4f}" if err['ref_error_mean'] is not None else "N/A"
-            ref_std = f"{err['ref_error_std']:.4f}" if err['ref_error_std'] is not None else "N/A"
+            prc_mean = f"{prc['prc_mean']:.4f}" if prc['prc_mean'] is not None else "N/A"
+            prc_std = f"{prc['prc_std']:.4f}" if prc['prc_std'] is not None else "N/A"
+            nse_score_mean = f"{nse['nse_score_mean']:.4f}" if nse['nse_score_mean'] is not None else "N/A"
+            nse_score_std = f"{nse['nse_score_std']:.4f}" if nse['nse_score_std'] is not None else "N/A"
+            nse_ref_mean = f"{nse['nse_ref_mean']:.4f}" if nse['nse_ref_mean'] is not None else "N/A"
+            nse_ref_std = f"{nse['nse_ref_std']:.4f}" if nse['nse_ref_std'] is not None else "N/A"
 
             f.write(f"{mi['model_family']}\t{mi['task']}\t{mi['model_type']}\t{mi['model_size']}\t")
-            f.write(f"{voc_mean}\t{voc_std}\t{score_mean}\t{score_std}\t{ref_mean}\t{ref_std}\t")
-            f.write(f"{voc['valid_samples']}/{voc['total_samples']}\n")
+            f.write(f"{prc_mean}\t{prc_std}\t{nse_score_mean}\t{nse_score_std}\t{nse_ref_mean}\t{nse_ref_std}\t")
+            f.write(f"{prc['valid_samples']}/{prc['total_samples']}\n")
 
         f.write("\n")
 
@@ -426,38 +425,38 @@ def write_results(results: List[Dict], output_path: str, summary_path: str):
 
         for r in successful:
             mi = r['model_info']
-            voc = r['voc']
-            err = r['errors']
+            prc = r['prc']
+            nse = r['nse']
 
             f.write("-" * 80 + "\n")
             f.write(f"Model: {mi['model_family']}/{mi['task']}/{mi['model_type']}_{mi['model_size']}\n")
             f.write("-" * 80 + "\n")
 
-            # VOC
-            f.write("VOC:\n")
-            if voc['voc_mean'] is not None:
-                f.write(f"  Mean: {voc['voc_mean']:.4f}  Std: {voc['voc_std']:.4f}\n")
+            # PRC
+            f.write("PRC (Progress Rank Correlation):\n")
+            if prc['prc_mean'] is not None:
+                f.write(f"  Mean: {prc['prc_mean']:.4f}  Std: {prc['prc_std']:.4f}\n")
             else:
                 f.write(f"  N/A (no valid trajectories)\n")
 
-            # Score Error
-            f.write("Score Error:\n")
-            if err['score_error_mean'] is not None:
-                f.write(f"  Mean: {err['score_error_mean']:.4f}  Std: {err['score_error_std']:.4f}\n")
+            # NSE Score
+            f.write("NSE (Score):\n")
+            if nse['nse_score_mean'] is not None:
+                f.write(f"  Mean: {nse['nse_score_mean']:.4f}  Std: {nse['nse_score_std']:.4f}\n")
             else:
                 f.write(f"  N/A\n")
 
-            # Ref Error
-            f.write("Ref Error:\n")
-            if err['ref_error_mean'] is not None:
-                f.write(f"  Mean: {err['ref_error_mean']:.4f}  Std: {err['ref_error_std']:.4f}\n")
+            # NSE Ref
+            f.write("NSE (Ref):\n")
+            if nse['nse_ref_mean'] is not None:
+                f.write(f"  Mean: {nse['nse_ref_mean']:.4f}  Std: {nse['nse_ref_std']:.4f}\n")
             else:
                 f.write(f"  N/A\n")
 
             # Samples
-            coverage = voc['sample_coverage'] * 100
-            f.write(f"Samples: {voc['valid_samples']}/{voc['total_samples']} ({coverage:.2f}%)\n")
-            f.write(f"Trajectories: {voc['valid_trajectories']}/{voc['total_trajectories']}\n")
+            coverage = prc['sample_coverage'] * 100
+            f.write(f"Samples: {prc['valid_samples']}/{prc['total_samples']} ({coverage:.2f}%)\n")
+            f.write(f"Trajectories: {prc['valid_trajectories']}/{prc['total_trajectories']}\n")
             f.write(f"Format: {r['format_type']}\n")
             f.write(f"Path: {mi['path']}\n")
             f.write("\n")
@@ -478,22 +477,22 @@ def write_results(results: List[Dict], output_path: str, summary_path: str):
 
     # Write summary to separate file
     with open(summary_path, 'w', encoding='utf-8') as f:
-        f.write("ModelFamily\tTask\tType\tSize\tVOC_Mean\tVOC_Std\tScore_Mean\tScore_Std\tRef_Mean\tRef_Std\tSamples\n")
+        f.write("ModelFamily\tTask\tType\tSize\tPRC_Mean\tPRC_Std\tNSE_Score_Mean\tNSE_Score_Std\tNSE_Ref_Mean\tNSE_Ref_Std\tSamples\n")
         for r in successful:
             mi = r['model_info']
-            voc = r['voc']
-            err = r['errors']
+            prc = r['prc']
+            nse = r['nse']
 
-            voc_mean = f"{voc['voc_mean']:.4f}" if voc['voc_mean'] is not None else "N/A"
-            voc_std = f"{voc['voc_std']:.4f}" if voc['voc_std'] is not None else "N/A"
-            score_mean = f"{err['score_error_mean']:.4f}" if err['score_error_mean'] is not None else "N/A"
-            score_std = f"{err['score_error_std']:.4f}" if err['score_error_std'] is not None else "N/A"
-            ref_mean = f"{err['ref_error_mean']:.4f}" if err['ref_error_mean'] is not None else "N/A"
-            ref_std = f"{err['ref_error_std']:.4f}" if err['ref_error_std'] is not None else "N/A"
+            prc_mean = f"{prc['prc_mean']:.4f}" if prc['prc_mean'] is not None else "N/A"
+            prc_std = f"{prc['prc_std']:.4f}" if prc['prc_std'] is not None else "N/A"
+            nse_score_mean = f"{nse['nse_score_mean']:.4f}" if nse['nse_score_mean'] is not None else "N/A"
+            nse_score_std = f"{nse['nse_score_std']:.4f}" if nse['nse_score_std'] is not None else "N/A"
+            nse_ref_mean = f"{nse['nse_ref_mean']:.4f}" if nse['nse_ref_mean'] is not None else "N/A"
+            nse_ref_std = f"{nse['nse_ref_std']:.4f}" if nse['nse_ref_std'] is not None else "N/A"
 
             f.write(f"{mi['model_family']}\t{mi['task']}\t{mi['model_type']}\t{mi['model_size']}\t")
-            f.write(f"{voc_mean}\t{voc_std}\t{score_mean}\t{score_std}\t{ref_mean}\t{ref_std}\t")
-            f.write(f"{voc['valid_samples']}/{voc['total_samples']}\n")
+            f.write(f"{prc_mean}\t{prc_std}\t{nse_score_mean}\t{nse_score_std}\t{nse_ref_mean}\t{nse_ref_std}\t")
+            f.write(f"{prc['valid_samples']}/{prc['total_samples']}\n")
 
 
 # ==================== Main ====================

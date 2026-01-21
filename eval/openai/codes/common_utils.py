@@ -286,16 +286,16 @@ def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int, num
     return normalized_error
 
 
-def calculate_false_positives(
+def calculate_afrr(
     predicted_ref: Union[int, str, None],
     predicted_score: Union[float, str, None],
     gt_ref: Optional[int],
     gt_score: Optional[float]
 ) -> Tuple[bool, bool]:
     """
-    Calculate false positive rates for ref and score.
+    Calculate AFRR (Answerable False Rejection Rate) for ref and score.
 
-    False positive occurs when:
+    AFRR occurs when:
     - GT is numeric but prediction is "n/a"
     - GT is "n/a" but prediction is numeric
 
@@ -306,24 +306,28 @@ def calculate_false_positives(
         gt_score: Ground truth score (float or None)
 
     Returns:
-        (is_ref_false_positive, is_score_false_positive)
+        (is_afrr_ref, is_afrr_score)
     """
-    # Check ref false positive
+    # Check ref AFRR
     gt_ref_is_na = (gt_ref is None)
     pred_ref_is_na = (predicted_ref == "n/a" or predicted_ref == "" or not isinstance(predicted_ref, int))
-    ref_fp = gt_ref_is_na != pred_ref_is_na
+    afrr_ref = gt_ref_is_na != pred_ref_is_na
 
-    # Check score false positive
+    # Check score AFRR
     gt_score_is_na = (gt_score is None)
     pred_score_is_na = (predicted_score == "n/a" or predicted_score is None or not isinstance(predicted_score, (int, float)))
-    score_fp = gt_score_is_na != pred_score_is_na
+    afrr_score = gt_score_is_na != pred_score_is_na
 
-    return ref_fp, score_fp
+    return afrr_ref, afrr_score
 
 
-def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+# Keep old function name for backwards compatibility
+calculate_false_positives = calculate_afrr
+
+
+def calculate_prc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Calculate VOC (trajectory order consistency) using Spearman correlation.
+    Calculate PRC (Progress Rank Correlation) using Spearman correlation.
 
     Uses sample-level N/A filtering: N/A predictions are excluded from
     calculation rather than being converted to 0.0.
@@ -340,7 +344,7 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         results: List of result dictionaries with meta_data containing id, progress_score
 
     Returns:
-        Dictionary with VOC statistics and sample coverage info
+        Dictionary with PRC statistics and sample coverage info
     """
     from collections import defaultdict
 
@@ -386,8 +390,8 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
                 'pred_score': pred_score  # Can be None
             })
 
-    # Calculate VOC for each trajectory (with sample-level filtering)
-    voc_values = []
+    # Calculate PRC for each trajectory (with sample-level filtering)
+    prc_values = []
     skipped_all_na = 0
     skipped_single = 0
     skipped_constant_pred = 0
@@ -420,18 +424,18 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         correlation, _ = spearmanr(gt_scores, pred_scores)
         if not np.isnan(correlation):
-            voc_values.append(correlation)
+            prc_values.append(correlation)
 
     # Calculate statistics
     valid_samples_count = total_samples - total_na_samples
     sample_coverage = valid_samples_count / total_samples if total_samples > 0 else 0.0
 
-    if len(voc_values) > 0:
+    if len(prc_values) > 0:
         return {
-            'voc_mean': float(np.mean(voc_values)),
-            'voc_std': float(np.std(voc_values)),
-            'voc_count': len(voc_values),
-            'voc_values': voc_values,
+            'prc_mean': float(np.mean(prc_values)),
+            'prc_std': float(np.std(prc_values)),
+            'prc_count': len(prc_values),
+            'prc_values': prc_values,
             'total_samples': total_samples,
             'valid_samples': valid_samples_count,
             'na_samples': total_na_samples,
@@ -444,10 +448,10 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         }
     else:
         return {
-            'voc_mean': None,
-            'voc_std': None,
-            'voc_count': 0,
-            'voc_values': [],
+            'prc_mean': None,
+            'prc_std': None,
+            'prc_count': 0,
+            'prc_values': [],
             'total_samples': total_samples,
             'valid_samples': valid_samples_count,
             'na_samples': total_na_samples,
@@ -458,6 +462,10 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
             'skipped_constant_pred': skipped_constant_pred,
             'skipped_constant_gt': skipped_constant_gt
         }
+
+
+# Keep old function name for backwards compatibility
+calculate_voc_metrics = calculate_prc_metrics
 
 
 def format_score_string(score: Union[float, str, None]) -> Optional[str]:

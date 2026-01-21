@@ -121,7 +121,7 @@ def calculate_false_positive(predicted_score, gt_score) -> bool:
         gt_score: Ground truth score (float or None)
 
     Returns:
-        is_score_false_positive
+        is_afrr_score
     """
     gt_score_is_na = (gt_score is None)
     pred_score_is_na = (predicted_score == "n/a" or predicted_score is None or not isinstance(predicted_score, (int, float)))
@@ -271,7 +271,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "predicted_score": None,
                             "ground_truth_score": ground_truth_score_str,
                             "evaluation_score": float('inf'),
-                            "score_false_positive": False,
+                            "afrr_score": False,
                             "response": f"Validation error: {error_msg}",
                             "meta_data": {
                                 **item,  # Include all original data
@@ -335,7 +335,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "predicted_score": predicted_score_str,
                             "ground_truth_score": ground_truth_score_str,
                             "evaluation_score": evaluation_score,
-                            "score_false_positive": score_fp,
+                            "afrr_score": score_fp,
                             "response": response,
                             "meta_data": {
                                 **item,  # Include all original data
@@ -360,7 +360,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "predicted_score": None,
                             "ground_truth_score": ground_truth_score_str,
                             "evaluation_score": float('inf'),
-                            "score_false_positive": False,
+                            "afrr_score": False,
                             "response": f"Processing error: {str(e)}\nResponse: {response if response else ''}",
                             "meta_data": {
                                 **item,  # Include all original data
@@ -383,7 +383,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "predicted_score": None,
                         "ground_truth_score": ground_truth_score_str,
                         "evaluation_score": float('inf'),
-                        "score_false_positive": False,
+                        "afrr_score": False,
                         "response": f"Batch error: {str(e)}",
                         "meta_data": {
                             **item,  # Include all original data
@@ -740,7 +740,7 @@ def run_visual_demo_inference(args):
     error_rate = error_count / len(all_results) if all_results else 0.0
 
     # Calculate false positive rate
-    score_fp_total = sum(1 for r in all_results if r.get('score_false_positive', False))
+    score_fp_total = sum(1 for r in all_results if r.get('afrr_score', False))
     score_fp_rate = score_fp_total / len(all_results) if all_results else 0.0
 
     # Calculate VOC metrics
@@ -789,8 +789,8 @@ def run_visual_demo_inference(args):
         "error_rate": error_rate,
         "mean_evaluation_score_all": mean_score,
         "mean_evaluation_score_valid": mean_score_valid,
-        "score_false_positive_count": score_fp_total,
-        "score_false_positive_rate": score_fp_rate,
+        "afrr_score_count": score_fp_total,
+        "afrr_score_rate": score_fp_rate,
         "voc_mean": voc_metrics['voc_mean'],
         "voc_std": voc_metrics['voc_std'],
         "voc_trajectories_count": voc_metrics['voc_count'],
