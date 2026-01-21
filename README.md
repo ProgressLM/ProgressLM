@@ -264,11 +264,11 @@ Evaluation scripts are organized in `eval/qwen25vl/scripts/benchmarks/`:
 
 | Benchmark | Description | Scripts |
 |-----------|-------------|---------|
-| `normal_text/` | Text demonstration (normal) | `eval_text_normal_sft_3b.sh`, `eval_text_normal_rl_3b.sh`, ... |
-| `normal_view/` | Visual demonstration (same view) | `visual_eval_one_view_3B_SFT.sh`, `visual_eval_one_view_3B_RL.sh`, ... |
-| `multi_view/` | Visual demonstration (cross view) | Multi-view evaluation scripts |
-| `nega_text/` | Text unanswerable samples | Negative text evaluation scripts |
-| `edit_nega/` | Visual unanswerable samples | Negative visual evaluation scripts |
+| `text_based/` | Text demonstration (normal) | `eval_text_normal_sft_3b.sh`, `eval_text_normal_rl_3b.sh`, ... |
+| `same_view/` | Visual demonstration (same view) | `visual_eval_one_view_3B_SFT.sh`, `visual_eval_one_view_3B_RL.sh`, ... |
+| `cross_view/` | Visual demonstration (cross view) | Cross-view evaluation scripts |
+| `text_unanswer/` | Text unanswerable samples | Text unanswerable evaluation scripts |
+| `vision_unanswer/` | Visual unanswerable samples | Visual unanswerable evaluation scripts |
 | `human/` | Human activity benchmarks | Human activity evaluation scripts |
 
 ### Running Evaluation
@@ -276,7 +276,7 @@ Evaluation scripts are organized in `eval/qwen25vl/scripts/benchmarks/`:
 #### Text Demo Evaluation (prog-bench)
 
 ```bash
-cd eval/qwen25vl/scripts/benchmarks/normal_text
+cd eval/qwen25vl/scripts/benchmarks/text_based
 
 # SFT Model (3B)
 bash eval_text_normal_sft_3b.sh
@@ -294,7 +294,7 @@ bash eval_text_normal_72b.sh
 #### Visual Demo Evaluation (prog-bench)
 
 ```bash
-cd eval/qwen25vl/scripts/benchmarks/normal_view
+cd eval/qwen25vl/scripts/benchmarks/same_view
 
 # SFT Model (3B)
 bash visual_eval_one_view_3B_SFT.sh
@@ -327,13 +327,13 @@ For models without thinking process:
 
 ```bash
 # Text Demo Nothink
-cd eval/qwen25vl/scripts/benchmarks/normal_text
+cd eval/qwen25vl/scripts/benchmarks/text_based
 bash nothink_3b.sh
 bash nothink_7b.sh
 bash nothink_72b.sh
 
 # Visual Demo Nothink
-cd eval/qwen25vl/scripts/benchmarks/normal_view
+cd eval/qwen25vl/scripts/benchmarks/same_view
 bash visual_eval_one_view_nothink_3B.sh
 bash visual_eval_one_view_nothink_7B.sh
 bash visual_eval_one_view_nothink_72B.sh
@@ -400,10 +400,10 @@ bash run_all/run_8b.sh          # Qwen3-VL-8B with thinking
 bash run_all/run_8b_nothink.sh  # Qwen3-VL-8B without thinking
 
 # Or run specific benchmarks
-bash normal_text/qwen3vl_8b.sh   # Text Demo evaluation
-bash normal_view/qwen3vl_8b.sh   # Visual Demo evaluation
-bash nega_text/qwen3vl_8b.sh     # Negative Text evaluation
-bash multi_view/qwen3vl_8b.sh    # Multi-view evaluation
+bash text_based/qwen3vl_8b.sh   # Text Demo evaluation
+bash same_view/qwen3vl_8b.sh   # Visual Demo evaluation
+bash text_unanswer/qwen3vl_8b.sh     # Text unanswerable evaluation
+bash cross_view/qwen3vl_8b.sh    # Cross-view evaluation
 ```
 
 **Available Model Sizes:**
