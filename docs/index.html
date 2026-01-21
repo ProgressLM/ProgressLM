@@ -1,268 +1,661 @@
-<!DOCTYPE html>
+<!doctype html>
+
+<style>
+  /* put this once in your CSS */
+  .bold-divider td {               /* cells inside the special row   */
+    border-top: 3px solid #000 !important;  /* bold black line         */
+  }
+</style>
+
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ProgressLM: Towards Progress Reasoning in Vision-Language Models">
-    <meta name="keywords" content="Progress Reasoning, Vision-Language Models, VLM, Machine Learning, Deep Learning">
-    <meta name="author" content="Jianshu Zhang, Chengxuan Qian, Haosen Sun, Haoran Lu, Dingcheng Wang, Letian Xue, Han Liu">
+    <head>
+        <title>PROGRESSLM</title>
+        <link rel="icon" type="image/x-icon" href="/static/img/icons/icon.png">
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="ProgressLM">
-    <meta property="og:description" content="Towards Progress Reasoning in Vision-Language Models">
-    <meta property="og:type" content="website">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>ProgressLM - Progress Reasoning in Vision-Language Models</title>
+        <!-- Open Graph -->
+        <meta property="og:url" content="" />
+        <!-- <meta property="og:image" content="https://cambrian-mllm.github.io/static/img/preview.png" /> -->
+        <meta property="og:image" content="" />
+        <meta property="og:title" content="PROGRESSLM: Towards Progress Reasoning in Vision-Language Models" />
+        <meta property="og:description" content="" />
+        
+        <!-- Twitter -->
+        <meta name="twitter:url" content="" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <!-- <meta property="og:image" content="https://cambrian-mllm.github.io/static/img/preview.png" /> -->
+        <meta property="og:image" content="" />
+        <meta name="twitter:title" content="PROGRESSLM: Towards Progress Reasoning in Vision-Language Models" />
+        <meta name="twitter:description" content="" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="imgs/icon.png">
-    <link rel="apple-touch-icon" href="imgs/icon.png">
+        <script src="./static/js/distill_template.v2.js"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/style.css?v=7">
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+        <script src="https://rawgit.com/nstrayer/slid3r/master/dist/slid3r.js"></script>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script defer="" src="./static/js/hider.js"></script>
+        <script src="./static/js/image_interact.js"></script>
+        <script src="./static/js/switch_videos.js"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <!-- Hero Section -->
-    <section id="hero">
-        <div class="container">
-            <div class="title-with-icon">
-                <img src="imgs/icon.png" alt="ProgressLM Icon" class="title-icon">
-                <h1>ProgressLM</h1>
-            </div>
-            <p class="subtitle">Towards Progress Reasoning in Vision-Language Models</p>
+        <link rel="stylesheet" href="./static/css/style.css">
+        <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.js" integrity="sha384-9Nhn55MVVN0/4OFx7EE5kpFBPsEMZxKTCnA+4fqDmg12eCTqGi6+BB2LjY8brQxJ" crossorigin="anonymous"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"
+            onload="renderMathInElement(document.body);"></script>
+        <script defer src="./static/js/fontawesome.all.min.js"></script>
 
-            <div class="buttons">
-                <a href="#" class="btn btn-primary">
-                    <i class="fas fa-file-pdf"></i> Paper
-                </a>
-                <a href="https://github.com/ProgressLM/ProgressLM" class="btn" target="_blank">
-                    <i class="fab fa-github"></i> Code
-                </a>
-                <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-SFT" class="btn" target="_blank">
-                    <i class="fas fa-cube"></i> SFT Model
-                </a>
-                <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-RL" class="btn" target="_blank">
-                    <i class="fas fa-cube"></i> RL Model
-                </a>
-                <a href="https://huggingface.co/datasets/Raymond-Qiancx/ProgressLM-Dataset" class="btn" target="_blank">
-                    <i class="fas fa-database"></i> Dataset
-                </a>
-            </div>
 
-            <div class="authors-box">
-                <div class="authors">
-                    <span class="author"><a href="https://sterzhang.github.io/" target="_blank">Jianshu Zhang</a><sup>*</sup></span>
-                    <span class="author"><a href="https://qiancx.com/" target="_blank">Chengxuan Qian</a><sup>*</sup></span>
-                    <span class="author">Haosen Sun</span>
-                    <span class="author">Haoran Lu</span>
-                    <span class="author">Dingcheng Wang</span>
-                    <span class="author">Letian Xue</span>
-                    <span class="author"><a href="https://magics.cs.northwestern.edu/people.html" target="_blank">Han Liu</a></span>
+        <!-- medium zoom https://github.com/francoischalifour/medium-zoom -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>  <!-- jquery -->
+        <script defer src="./static/js/medium-zoom.min.js"></script>
+        <script defer src="./static/js/zoom.js"></script>
+    </head>
+    <body>
+        <div class="header-wrapper">
+            <div class="header-container" id="header-container">
+                <div class="header-content">
+                    <h1 style="margin-top: 0px"><i>PROGRESSLM:</i></h1>
+                    <h2>Towards Progress Reasoning in <br> Vision-Language Models</h2>
+                        <p>
+                            Humans can perceive "what is happening in a scene" and situate it within the dynamic structure of a task, allowing them to "estimate task progress from a single observation". We study whether VLMs possess a similar form of <em><strong>progress reasoning</strong></em> by following:
+                        </p>
+
+                        <div class="icon-container">
+                            <div class="icon-item">
+                                <img src="./static/img/icons/eval.svg" alt="Visual Representation Icon">
+                                <div><strong>Progress-Bench</strong>: Systematically evaluate whether VLMs can perform progress reasoning from a single observation under controlled variations of demonstration modality, viewpoint, and answerability.</div>
+                            </div>
+                            <div class="icon-item">
+                                <img src="./static/img/icons/data.svg" alt="Connector Design Icon">
+                                <div><strong>Progress Reasoning Paradigm</strong>: Examine whether a human-like two-stage reasoning process of <i>episodic retrieval</i> and <i>mental simulation</i> is effective through either training-free prompting or training-based learning.</div>
+                            </div>
+                            <div class="icon-item">
+                                <img src="./static/img/icons/magnifier.svg" alt="Magnifier Icon">
+                                <div><strong>Comprehensive Evaluation and Insights</strong>: Analyze what VLMs can do, how they behave, why and where progress reasoning succeeds or fails.</div>
+                            </div>
+                        </div>
+
+                    <div class="button-container">
+                        <!-- replace arxiv
+                        <a href="" class="button paper-link" target="_blank">
+                            <span class="icon is-small">
+                                <i class="ai ai-arxiv"></i>
+                            </span>
+                            arXiv
+                        </a> -->
+                        <!-- replace pdf -->
+                        <a href="" class="button paper-link" target="_blank">
+                            <span class="icon is-small">
+                                <i class="fas fa-file-pdf"></i>
+                            </span>
+                            <span>pdf</span>
+                        </a>
+                        <!-- replace image -->
+                        <a href="" class="button" target="_blank">
+                            <span class="icon is-small">
+                                <i class="fab fa-github"></i>
+                            </span>
+                            <span>Code</span>
+                        </a>
+                        <a href="" class="button" target="_blank">
+                            <span class="icon is-small">
+                                <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face logo" style="height: 1em;">
+                            </span>
+                            <span>Data</span>
+                        </a>
+                        <a href="https://huggingface.co/collections/nyu-visionx/cambrian-data-6667ce801e179b4fbe774e11" class="button" target="_blank">
+                            <span class="icon is-small">
+                                <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="Hugging Face logo" style="height: 1em;">
+                            </span>
+                            <span>Model</span>
+                        </a>
+                    </div>
                 </div>
-                <p class="equal-contribution"><sup>*</sup> Equal Contribution</p>
+                <div class="header-image">
+                    <img draggable="false" src="static/img/head.png" alt="Teaser Image" class="teaser-image">
+                </div>
             </div>
-
-            <div class="teaser-image">
-                <img src="imgs/teaser.png" alt="ProgressLM Teaser" style="width: 100%; max-width: 900px; margin-top: 32px; border-radius: 8px;">
-                <p class="teaser-caption">
-                    <strong><em>Can vision-language models acquire progress estimation as a general reasoning capability from a single observation?</em></strong> Given a task demonstration and a single observation, the goal is to estimate how much of the task has already been completed.
-                    Direct prediction can often judge whether the task is unfinished, but struggles to assign a well-calibrated progress score.
-                    Progress reasoning instead follows a coarse-to-fine process: it first performs <em>episodic retrieval</em> to coarsely locate the observation along the demonstrated task,
-                    then applies <em>mental simulation</em> to imagine the transition from the retrieved anchor to the current observation, enabling a fine-grained estimate of completed progress.
+        </div>
+    <d-article>
+        <div class="byline">
+            <div class="byline-container">
+                <p>
+                    <a href="" class="author-link" target="_blank">Jianshu Zhang</a><sup>1*</sup> &emsp;
+                    <a href="" class="author-link" target="_blank">Chengxuan Qian</a><sup>2*</sup> &emsp;
+                    <a href="" class="author-link" target="_blank">Haosen Sun</a><sup>2*</sup> &emsp;
+                    <a href="" class="author-link" target="_blank">Haoran Lu</a><sup>1*</sup> &emsp;
+                    <a href="" class="author-link" target="_blank">Letian Xue</a><sup>1*</sup> &emsp;
+                    <a href="" class="author-link" target="_blank">Dingcheng Wang</a><sup>1</sup> &emsp;
+                    <a href="" class="author-link" target="_blank">Han Liu</a><sup>1</sup> &emsp;
+                    <p></p>
+                </p>
+                    <sup>1</sup><a href="" class="author-link" target="_blank">Northwestern University</a> &emsp;
+                    <sup>2</sup><a href="" class="author-link" target="_blank">Arcadia University</a>
+                <!-- <p style="text-align: center; font-size: 1.35em; color: red; font-weight: bold;">
+                    NeurIPS 2025 (Spotlight)
+                </p> -->
+                <p style="text-align: center; margin-bottom: 0;">
+                    <span class="author-note"><sup>*</sup>Equal Contribution</span>&emsp;
                 </p>
             </div>
         </div>
-    </section>
 
-    <!-- Abstract Section -->
-    <section id="abstract">
-        <div class="container">
-            <h2>Abstract</h2>
-            <p>
-                Estimating task progress requires reasoning over long-horizon dynamics rather than recognizing static visual content. While modern Vision-Language Models (VLMs) excel at describing what is visible, it remains unclear whether they can infer how far a task has progressed from partial observations. In this work, we introduce <strong>Progress-Bench</strong>, a benchmark for systematically evaluating progress reasoning in VLMs. We further explore a human-inspired two-stage progress reasoning paradigm that combines <strong>episodic retrieval</strong> with <strong>mental simulation</strong>. We instantiate this paradigm through both training-free prompting and a training-based approach built on an automatically curated dataset, <strong>ProgressLM-45K</strong>. Evaluating 14 VLMs on Progress-Bench, we find that current models struggle to reliably estimate task progress. While training-free prompting that enforces structured progress reasoning yields improvements, these gains are limited and model-dependent. In contrast, <strong>ProgressLM-3B</strong> achieves consistent improvements in accuracy, robustness to viewpoint variation, and calibrated handling of unanswerable cases, even at small model scale. Further analyses reveal characteristic error patterns of existing VLMs and clarify when and why progress reasoning succeeds or fails.
-            </p>
-        </div>
-    </section>
+        
+        <p class="text abstract">
+            
+            Estimating task progress requires reasoning over long-horizon dynamics rather than recognizing static visual content. While modern Vision-Language Models (VLMs) excel at describing
+            what is visible, it remains unclear whether they can infer how far a task has progressed from partial
+            observations. To this end, we first introduce PROGRESS-BENCH, a benchmark for systematically
+            evaluating progress reasoning in VLMs. Beyond benchmarking, we further explore a human inspired two-stage progress reasoning paradigm through both training-free prompting and
+            training-based approach based on curated dataset PROGRESSLM-45K. Experiments on 14 VLMs
+            show that most models are not yet ready for task progress estimation, exhibiting sensitivity
+            to demonstration modality and viewpoint changes, as well as poor handling of unanswerable
+            cases. While training-free prompting that enforces structured progress reasoning yields limited
+            and model-dependent gains, the training-based PROGRESSLM-3B achieves consistent improvements even at a small model scale, despite being trained on a task set fully disjoint from the
+            evaluation tasks. Further analyses reveal characteristic error patterns and clarify when and why
+            progress reasoning succeeds or fails.
 
-    <!-- Progress Annotation Section -->
-    <section id="progress-annotation">
-        <div class="container">
-            <details class="collapsible-section" open>
-                <summary class="collapsible-title">
-                    <span>How do we annotate progress under controlled shifts?</span>
-                    <span class="collapse-icon"></span>
-                </summary>
-                <div class="collapsible-content">
-                    <div class="annotation-image" style="margin-bottom: 24px;">
-                        <img src="imgs/bench_curation.png" alt="Progress Annotation" style="width: 100%; border-radius: 8px;">
-                    </div>
-                    <p style="text-align: justify; line-height: 1.8;">
-                        We construct progress data by pairing each task demonstration with a single observation sampled from intermediate or boundary moments during execution, and assign its progress label via temporal interpolation between adjacent key steps. To systematically probe progress reasoning beyond static matching, we introduce controlled shifts along three dimensions: <strong>demonstration modality</strong> (vision-based vs. text-based), <strong>viewpoint correspondence</strong> (same-view vs. cross-view for vision demos), and <strong>answerability</strong>, where semantic mismatches are injected so that progress becomes ill-defined and the correct output is N/A.
-                    </p>
-                </div>
-            </details>
-        </div>
-    </section>
-
-    <!-- Data Scaling Section -->
-    <section id="data-scaling">
-        <div class="container">
-            <details class="collapsible-section" open>
-                <summary class="collapsible-title">
-                    <span>Scaling progress data across robots and objects</span>
-                    <span class="collapse-icon"></span>
-                </summary>
-                <div class="collapsible-content">
-                    <div class="scaling-images" style="margin-bottom: 24px;">
-                        <img src="imgs/statistics.png" alt="Statistics" style="width: 100%; border-radius: 8px; margin-bottom: 16px;">
-                        <img src="imgs/bar-stat-combined.png" alt="Bar Statistics" style="width: 100%; border-radius: 8px; margin-bottom: 16px;">
-                        <img src="imgs/sankey.png" alt="Sankey Diagram" style="width: 100%; border-radius: 8px;">
-                    </div>
-                    <p style="text-align: justify; line-height: 1.8;">
-                        To scale progress reasoning beyond a single embodiment or environment, we curate progress estimation data spanning single-arm manipulators, dual-arm systems, and humanoid robots, together with diverse object interactions. <strong>Progress-Bench</strong> evaluates models on thousands of observation queries grounded in real manipulation trajectories, while <strong>ProgressLM-45K</strong> further expands training coverage with large-scale supervised and reinforcement learning samples. This diversity encourages models to learn transferable progress cues—tracking long-horizon state evolution rather than overfitting to specific robots, viewpoints, or object appearances.
-                    </p>
-                </div>
-            </details>
-        </div>
-    </section>
-
-    <!-- Method Section -->
-    <section id="method">
-        <div class="container">
-            <h2>Method</h2>
-
-            <div class="method-overview">
-                <div class="method-card">
-                    <h3><i class="fas fa-bolt"></i> Direct Prediction</h3>
-                    <p>
-                        The model directly outputs a progress percentage from the demonstration and the current observation, without any explicit reasoning decomposition.
-                    </p>
-                </div>
-                <div class="method-card">
-                    <h3><i class="fas fa-comments"></i> Training-free Approach</h3>
-                    <p>
-                        We enforce a human-inspired two-stage progress reasoning process via structured prompting, where the model first performs <strong>episodic retrieval</strong> to locate a coarse anchor step, then applies <strong>mental simulation</strong> to infer fine-grained progress.
-                    </p>
-                </div>
-                <div class="method-card">
-                    <h3><i class="fas fa-graduation-cap"></i> SFT</h3>
-                    <p>
-                        We explicitly train the model to internalize episodic retrieval and mental simulation using <strong>cold-start supervised fine-tuning</strong> on <strong>ProgressLM-25K-CoT</strong> via <a href="https://github.com/hiyouga/LLaMA-Factory" target="_blank">LLaMA-Factory</a>.
-                    </p>
-                </div>
-                <div class="method-card">
-                    <h3><i class="fas fa-brain"></i> RL</h3>
-                    <p>
-                        We further refine the SFT model with <strong>GRPO-based reinforcement learning</strong> on <strong>ProgressLM-20K-RL</strong> via <a href="https://github.com/hiyouga/EasyR1" target="_blank">EasyR1</a> and <a href="https://github.com/volcengine/verl" target="_blank">verl</a>, yielding <strong>ProgressLM</strong> with improved accuracy, robustness, and calibrated handling of unanswerable cases.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Performance Section -->
-    <section id="performance">
-        <div class="container">
-            <details class="collapsible-section" open>
-                <summary class="collapsible-title">
-                    <span>Performance on Answerable Scenarios</span>
-                    <span class="collapse-icon"></span>
-                </summary>
-                <div class="collapsible-content">
-                    <!-- Subsection 1 -->
-                    <div class="result-subsection">
-                        <h4 class="subsection-title">How well do current VLMs perform at progress estimation?</h4>
-                        <div class="subsection-content">
-                            <img src="imgs/Tab1.png" alt="Table 1: Performance on Answerable Scenarios" style="width: 100%; border-radius: 8px; margin-bottom: 16px;">
-                            <p>Overall, current VLMs exhibit limited and highly variable progress estimation ability under direct prediction. Even strong models achieve only moderate performance and remain highly sensitive to the demonstration setting, while several models show abnormally low or even negative PRC, indicating distorted temporal ordering rather than meaningful ordinal progress reasoning. In addition, some models adopt overly conservative behaviors with elevated AFRR, rejecting answerable cases instead of producing calibrated progress scores.</p>
+            <d-figure id="fig-teaser" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/teaser.png" alt="Teaser" style="width: 85%;">
                         </div>
-                    </div>
+                        <figcaption>
+                            <strong>Figure 1:</strong>
+                            Given a task demonstration and a single observation, the goal is to estimate
+                            <em>how much of the task has already been completed</em>.
+                            Direct prediction can often judge whether the task is unfinished, but struggles to assign a progress score.
+                            Progress reasoning instead follows a coarse-to-fine process:
+                            it first performs
+                            <span style="color: rgb(230,127,68);"><em>episodic retrieval</em></span>
+                            to coarsely locate the observation along the demonstrated task,
+                            then uses
+                            <span style="color: rgb(52,110,187);"><em>mental simulation</em></span>
+                            to imagine the transition from the anchor to the current observation,
+                            enabling a fine-grained estimate of <em>completed progress</em>,
+                            which leads to accurate and interpretable progress estimation.
+                        </figcaption>
+                    </figure>
 
-                    <!-- Subsection 2 -->
-                    <div class="result-subsection">
-                        <h4 class="subsection-title">Does training-free progress reasoning help?</h4>
-                        <div class="subsection-content">
-                            <p>The training-free approach provides only conditional benefits: it tends to help large models improve temporal consistency (often reflected in PRC), but its effect is unstable and can be neutral or harmful for smaller models. This suggests that limited-capacity VLMs may imitate the structured format without truly improving progress understanding, leading to degraded pointwise accuracy (higher NSE) or increased rejection behavior (higher AFRR).</p>
-                        </div>
-                    </div>
+                </d-figure>
+        </p>
 
-                    <!-- Subsection 3 -->
-                    <div class="result-subsection">
-                        <h4 class="subsection-title">Does training-based progress reasoning help?</h4>
-                        <div class="subsection-content">
-                            <p>Yes—explicit learning yields consistent and substantial improvements even at small model scale. Compared to the base model, PROGRESSLM improves both single-point progress accuracy (lower NSE) and trajectory-level temporal consistency (higher PRC), demonstrating that robust progress reasoning is not merely a consequence of scale. Notably, the reinforced variant further strengthens overall reliability, showing that progress reasoning can be effectively learned through targeted supervision and optimization rather than relying on prompting alone.</p>
-                        </div>
-                    </div>
-                </div>
-            </details>
+        <div class="icon-row">
+            <a href="#sec:bench" class="icon-link">
+                <img src="static/img/icons/connector.svg" alt="" class="icon">
+                Benchmark <br> Curation
+            </a>
+            <a href="#sec:progress_reasoning" class="icon-link">
+                <img src="./static/img/icons/recipe.svg" alt="" class="icon">
+                Progress Reasoning
+            </a>
+            <a href="#sec:statistics" class="icon-link">
+                <img src="./static/img/icons/eval.svg" alt="" class="icon">
+                Data Statistics
+            </a>
+            <a href="#sec:results_and_findings" class="icon-link">
+                <img src="./static/img/icons/magnifier.svg" alt="" class="icon">
+                Results, Findings
+            </a>
+            <a href="#sec:case" class="icon-link">
+                <img src="./static/img/icons/visual.svg" alt="Benchmarking Icon" class="icon">
+                Case<br>Studies
+            </a>
         </div>
-    </section>
 
-    <!-- Results Section -->
-    <section id="results">
-        <div class="container">
-            <h2>Supported Models</h2>
-            <p style="margin-bottom: 24px; color: var(--text-secondary); text-align: center;">
-                We conduct extensive validation on open-source VLMs across different architectures and model scales.
-            </p>
-            <div class="models-list">
-                <div class="model-badge">
-                    <i class="fas fa-robot"></i> Qwen2.5-VL (3B, 7B, 32B, 72B)
-                </div>
-                <div class="model-badge">
-                    <i class="fas fa-robot"></i> Qwen3-VL (2B, 4B, 8B, 32B)
-                </div>
-                <div class="model-badge">
-                    <i class="fas fa-robot"></i> InternVL3.5 (4B, 8B, 14B, 38B)
-                </div>
-                <div class="model-badge">
-                    <i class="fas fa-robot"></i> GPT-5 / GPT-5-mini
-                </div>
+        <p class="click-hint" style="width: 85%;">
+            <img src="static/img/icons/click.gif" style="width: 1.5rem">
+            <strong>Click to jump to each section.</strong>
+        </p>
+
+        
+
+        <hr>
+
+        <div id='visual_representations' class="vision-block">
+            
+            <div id="sec:bench" class="sub-section">
+                <h1 class="text">Benchmark Design and Curation</h1>
+
+                    <p class="text">
+                        <!-- <h2 class="text">Progress-Bench</h2> -->
+                        <p class="text">
+                            PROGRESS-BENCH evaluates whether a model can situate a single observation within the temporal structure of an ongoing task,
+                            going beyond static perception to reason about task progression.
+                            Rather than introducing all design factors at once, we construct the benchmark in successive stages,
+                            gradually increasing the reasoning challenges involved in progress estimation.
+                        </p>
+
+                        <p class="text">
+                            Specifically, PROGRESS-BENCH is designed around three key dimensions:
+                            <ol class="text">
+                                <li>
+                                    <strong>Demonstration Modality.</strong>
+                                    We vary how task demonstrations are presented, including either vision-based (key frames showing complete world states) and text-based (step-by-step action descriptions) demonstrations
+                                    to study progress reasoning under explicit versus implicit state information.
+                                </li>
+                                <li>
+                                    <strong>Viewpoint Correspondence.</strong>
+                                    We control whether observations share the same viewpoint as the demonstration or come from a different view,
+                                    enabling evaluation of robustness to viewpoint changes beyond visual similarity.
+                                </li>
+                                <li>
+                                    <strong>Answerability.</strong>
+                                    We distinguish between answerable and inherently ambiguous cases,
+                                    testing whether models can estimate progress when well-defined and abstain when it is not.
+                                </li>
+                            </ol>
+                        </p>
+                        <d-figure id="fig-data-curation" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/data_curation.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 2:</strong> Progress-Bench construction.
+                                        (a) <em>Demonstration Setup</em> provides vision-based key-frame demonstrations or text-based step descriptions with progress annotations.
+                                        (b) <em>Observation Sampling</em> selects observations between or near demonstration steps, with progress assigned by interpolation; vision-based settings include same-view and cross-view cases.
+                                        (c) <em>Answerability Augmentation</em> creates unanswerable samples by introducing mismatches between demonstrations and observations.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
             </div>
-            <p style="margin-top: 16px; color: var(--text-secondary); text-align: center; font-size: 0.9em;">
-                All models support <strong>direct prediction</strong>, <strong>non-thinking</strong>, and <strong>thinking</strong> modes for evaluation.
-            </p>
-        </div>
-    </section>
+        
 
-    <!-- Citation Section -->
-    <section id="citation">
-        <div class="container">
-            <h2>Citation</h2>
-            <p>If you find our work useful, please consider citing:</p>
-            <div class="bibtex-container">
-                <pre id="bibtex-content">@article{zhang2025progresslm,
-  title={ProgressLM: Towards Progress Reasoning in Vision-Language Models},
-  author={Zhang, Jianshu and Qian, Chengxuan and Sun, Haosen and Lu, Haoran and Wang, Dingcheng and Xue, Letian and Liu, Han},
-  journal={arXiv preprint arXiv:2505.XXXXX},
-  year={2025}
-}</pre>
-                <button id="copy-btn"><i class="fas fa-copy"></i> Copy</button>
+
+            <div id="sec:progress_reasoning" class="sub-section">
+            <h1 class="text">Towards Progress Reasoning in VLMs</h1>
+                <p class="text">
+                    We frame progress reasoning as a human-inspired two-stage process (<a href="#fig-teaser">Figure 1</a>).
+                    Given a demonstration and a partial observation, humans first perform <em>episodic retrieval</em> to identify a representative reference step as a coarse anchor, and then apply <em>mental simulation</em> to reason how the task state evolves from this anchor to the current observation. This formulation treats progress estimation as reasoning over a latent task trajectory, rather than matching observations to fixed timestamps.
+                </p>
+                <h3 class="text">Training-Free Approach </h3> 
+                <p class="text">
+                    We instantiate this two-stage reasoning via structured prompting without parameter updates.
+                    The prompt enforces an explicit schema with four fields:
+                    <i>&lt;ref_think&gt;</code></i> (episodic retrieval reasoning),
+                     <i>&lt;ref&gt;</i> (retrieved reference step),
+                    <i>&lt;score_think&gt;</i> (mental simulation),
+                    and <i>&lt;score&gt;</i> (final progress estimate),
+                    which the model follows at inference time.
+                </p>
+
+                <h3 class="text">Training-Based Approach </h3> 
+                <p class="text">
+                    We further explore a training-based strategy to explicitly teach the two-stage reasoning process of episodic retrieval and mental simulation. 
+                    We first perform <strong>supervised fine-tuning</strong> on our ProgressLM-25K-CoT dataset to internalize the structured reasoning format, where each example includes a task demonstration, a single observation, and a target reasoning trace specifying the reference step and progress score. To improve robustness and score calibration, we further apply a <strong>reinforcement learning</strong> stage that jointly rewards structured output, accurate reference retrieval, and precise progress estimation.
+                    This two-stage training procedure encourages models to produce interpretable reasoning while improving reliability under challenging progress estimation scenarios.
+                </p>
             </div>
-        </div>
-    </section>
+            
+                    <div id='visual_representations' class="vision-block">
+            
+            <div id="sec:statistics" class="sub-section">
+                <h1 class="text">Data Source and Statistics</h1>
+                        <d-figure id="fig-statistics" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/statistics.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 3:</strong> Statistics of Progress-Bench and ProgressLM-45K (25K-CoT for SFT while 20K for RL) based on RoboMind. Traj and Samp denote the numbers of task trajectories and sampled observations to be estimated. The upper-right panel shows the distinct robotic embodiments included, while the lower-right panel visualizes the diversity of objects involved.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+            </div>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>MIT License - Copyright 2025 ProgressLM Team</p>
-            <p>
-                <a href="https://github.com/ProgressLM/ProgressLM" target="_blank">
-                    <i class="fab fa-github"></i> GitHub Repository
-                </a>
+            <div id='sec:results_and_findings' class="sub-section">
+            <h1 class="text">Results, Analysis, and Findings</h1>
+                <h2 class="text">Performance on Answerable Scenarios</h2>
+                <d-figure id="fig-exp1" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp1.png" alt="Overview" style="width: 85%;">
+                        </div>
+                        <figcaption>
+                            <strong>Table 1:</strong> Performance comparison on <em>answerable</em> samples under vision-based and text-based demonstrations.
+                            We report Normalized Score Error (NSE) ↓, Progress Rank Correlation (PRC) ↑,
+                            and Answerable False Rejection Rate (AFRR) ↓, with micro and macro averages.
+                            <span class="rank-first">Best</span>,
+                            <span class="rank-second">Second Best</span>, and
+                            <span class="rank-third">Third Best</span> results are highlighted.
+                            Colored deltas indicate the effect of training-free progress reasoning relative to direct prediction
+                            (<span class="delta-better">green</span>: improvement;
+                            <span class="delta-worse">red</span>: degradation).
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>How well do current VLMs perform at progress estimation?</strong>
+                            Overall, current VLMs show limited and highly unstable progress estimation under direct prediction (high NSE),
+                            with strong sensitivity to demonstration modality and frequent failures in producing coherent progress rankings (low PRC).
+                        </li>
+                        <li>
+                            <strong>Does training-free progress reasoning help?</strong>
+                            Training-free, human-inspired prompting benefits only large-scale models,
+                            while smaller models often suffer degraded accuracy or increased false rejections.
+                        </li>
+                        <li>
+                            <strong>Does training-based progress reasoning help?</strong>
+                            Explicit training consistently and substantially improves progress estimation,
+                            enabling even small models to outperform much larger baselines.
+                        </li>
+                    </ul>
+                </p>
+                
+                <h2 class="text">Performance under Viewpoint Variation</h2>
+                <d-figure id="fig-exp2" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp2.png" alt="Overview" style="width: 85%;">
+                        </div>
+                        <figcaption>
+                            <strong>Table 2:</strong> Performance under <em>same-view</em> and <em>cross-view</em> observation settings on answerable vision-based demonstrations.
+                            We report Normalized Score Error (NSE) ↓, Progress Rank Correlation (PRC) ↑,
+                            and Answerable False Rejection Rate (AFRR) ↓, with micro and macro averages.
+                            <span class="rank-first">Best</span>,
+                            <span class="rank-second">Second Best</span>, and
+                            <span class="rank-third">Third Best</span> results are highlighted.
+                            Colored deltas indicate the effect of training-free progress reasoning relative to direct prediction
+                            (<span class="delta-better">green</span>: improvement;
+                            <span class="delta-worse">red</span>: degradation).
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>How do current VLMs handle viewpoint changes?</strong>
+                            Most VLMs experience a clear performance drop under cross-view observations,
+                            with higher score errors and disrupted progress ordering,
+                            particularly for small and medium-sized models that rely on visual similarity.
+                        </li>
+                        <li>
+                            <strong>Does progress reasoning improve robustness under viewpoint variation?</strong>
+                            Training-free reasoning provides only limited and model-dependent robustness,
+                            mainly preserving relative progress ordering rather than improving accuracy.
+                            In contrast, training-based progress reasoning yields consistently stronger cross-view generalization,
+                            substantially reducing the gap between same-view and cross-view settings.
+                        </li>
+                    </ul>
+                </p>
+
+                <h2 class="text">Performance on Unanswerable Scenarios</h2>
+                <d-figure id="fig-exp3" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp3.png" alt="Overview" style="width: 85%;">
+                        </div>
+                        <figcaption>
+                            <strong>Figure 4:</strong> Unanswerable Detection Accuracy (UDA)↑ across models under two settings.
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>Can models handle unanswerable scenarios appropriately?</strong>
+                            Most VLMs fail to reliably recognize when progress estimation is not possible,
+                            often producing arbitrary scores instead of abstaining.
+                            In contrast, ProgressLM consistently identifies unanswerable cases,
+                            while avoiding overly conservative behavior that rejects valid, answerable inputs.
+                        </li>
+                    </ul>
+                </p>
+                
+
+                <h2 class="text">Distribution of Predicted Score Analysis</h2>
+                <d-figure id="fig-exp4" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp4.png" alt="Overview" style="width: 85%;">
+                        </div>
+                        <figcaption>
+                            <strong>Figure 5:</strong> Distribution of predicted progress scores.
+                                Some models exhibit collapsed or clustered distributions at extreme or discrete values,
+                                indicating reliance on heuristic anchors rather than continuous progress modeling.
+                                In contrast, GPT-5 and ProgressLM (3B-SFT and 3B-RL) produce smoother distributions,
+                                reflecting improved sensitivity to intermediate task progress.
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>What patterns emerge in predicted progress score distributions?</strong>
+                            Predicted scores frequently exhibit degenerate distribution patterns rather than smooth variation:
+                            (i) single-peak collapse at extreme values (e.g., 0% or 100%);
+                            (ii) multi-peak clustering around a few heuristic anchors;
+                            (iii) central-peaked distributions concentrated near the midpoint;
+                            and (iv) smooth, continuous distributions spanning the full range.
+                            Only explicitly trained models consistently exhibit pattern (iv),
+                            explaining their more stable and meaningful progress ranking behavior.
+                        </li>
+                    </ul>
+                </p>
+
+                <h2 class="text">Distribution of Per-sample Error Analysis</h2>
+                <d-figure id="fig-exp5" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp5.png" alt="Overview" style="width: 85%;">
+                        </div>
+                        <figcaption>
+                            <strong>Figure 6:</strong> Raincloud plots of per-sample normalized score prediction error across models and settings.
+                                Each plot combines jittered samples, box plots, and kernel density estimates.
+                                Smaller models exhibit highly dispersed and heavy-tailed error distributions, while larger and our models show more concentrated errors with fewer extreme outliers.
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>How do error distributions reflect robustness in progress estimation?</strong>
+                            Smaller models exhibit broad, heavy-tailed error distributions with frequent large errors,
+                            reflecting unstable progress estimation.
+                            In contrast, explicit progress reasoning substantially tightens error distributions,
+                            with trained models suppressing extreme-error cases and achieving more robust per-sample predictions.
+                        </li>
+                    </ul>
+                </p>
+
+                
+                <h2 class="text">Coupled Two-Stage Progress Reasoning</h2>
+                <d-figure id="fig-exp6" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp6.png" alt="Overview" style="width: 65%;">
+                        </div>
+                        <figcaption>
+                            <strong>Figure 7:</strong> Coupling between the two stages progress reasoning of ProgressLM.
+                                A diagonal concentration indicates that the anchor selected during <em>episodic retrieval</em> consistently constrains second-stage <em>mental simulation</em>.
+                                The vertical axis corresponds to the <em>Score-Aligned Demonstration Index</em>, i.e., the demonstration step whose annotated progress is closest to the final predicted score.
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>Are the two reasoning stages coupled rather than independent?</strong>
+                            Yes. The reference anchor retrieved during episodic retrieval systematically constrains subsequent progress estimation,
+                            with training-based models exhibiting strong alignment between retrieved anchors and final progress predictions,
+                            indicating that mental simulation is directly guided by the retrieved task stage.
+                        </li>
+                    </ul>
+                </p>
+
+
+                <h2 class="text">Implicit State Accumulation in Text-Based Demonstrations</h2>
+                <d-figure id="fig-exp7" >
+                    <figure>
+                        <div style="text-align: center;">
+                            <img data-zoomable="" draggable="false" src="static/img/exp7.png" alt="Overview" style="width: 55%;">
+                        </div>
+                        <figcaption>
+                            <strong>Figure 8:</strong> Illustration of implicit state accumulation in text-based demonstrations.
+                                Although Step 1 (purple) and Step 4 (green) appear action-wise similar that interact with the pot lid, they differ in whether the pumpkin has already been placed on the plate (red box).
+                                Correctly identifying the current progress stage therefore requires integrating intervening steps to recover the accumulated state.
+                        </figcaption>
+                    </figure>
+                </d-figure>
+
+                
+                <p class="text">
+                    <ul class="text">
+                        <li>
+                            <strong>Why are text-based demonstrations harder than vision-based ones?</strong>
+                            Text-based demonstrations require implicit accumulation of world state over time,
+                            since actions must be integrated to infer the underlying state.
+                            Unlike vision-based demonstrations that allow direct state matching,
+                            progress estimation here depends on maintaining and updating hidden task states rather than relying on surface-level action semantics.
+                        </li>
+                    </ul>
+                </p>
+
+
+                
+
+            </div>
+                
+        </div>
+
+        <div id="sec:case" class="sub-section">
+                <h1 class="text">Case Studies</h1>
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case1.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 9:</strong> Vision-Based Demonstration Case Visualization (Same-View).
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case2.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 10:</strong> Vision-Based Demonstration Case Visualization (Cross-View).
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case3.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 11:</strong> Text-Based Demonstration Case Visualization.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case4.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 12:</strong> Case Visualization of vision-based unanswerable samples construction via Image Editing. To test whether models can recognize ill-defined progress, we construct visual unanswerable samples by breaking the semantic consistency between demonstrations and observations while preserving realism. Given an image at a specific manipulation step, we edit the key object using three strategies: (a) Color Change, altering object appearance; (b) Object Removal, eliminating the critical object; and (c) Object Replacement, substituting it with an incompatible one.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case5.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 13:</strong> Vision-based Demonstration Unanswerable Case Visualization.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case6.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 14:</strong> Text-based Demonstration Unanswerable Case Visualization.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+
+                        <d-figure id="fig-case" >
+                            <figure>
+                                <div style="text-align: center;">
+                                    <img data-zoomable="" draggable="false" src="static/img/case7.png" alt="Overview" style="width: 85%;">
+                                </div>
+                                <figcaption>
+                                    <strong>Figure 15:</strong> In-the-wild Generalization on Human Activities.
+                                </figcaption>
+                            </figure>
+                        </d-figure>
+        </div>
+
+
+        <div id="conclusion" style="position: relative; margin-top: 40px; margin-bottom: 0px;">
+            <h2 class="text" style="margin-top:0px; margin-bottom:10px">Conclusion</h2>
+            <p class="text">
+                We study progress estimation as a long-horizon, dynamic reasoning problem beyond static visual understanding.
+                We introduce Progress-Bench to systematically evaluate progress reasoning from a single observation under controlled variations of modality, viewpoint, and answerability.
+                Experiments on 14 VLMs show that existing models struggle with this task, exhibiting strong sensitivity to modality and viewpoint changes, degenerate progress predictions, and weak handling of unanswerable cases.
+                Our analyses expose systematic failure modes in existing VLMs and show that robust progress estimation emerges only when coarse anchor retrieval and fine-grained reasoning are explicitly learned.
             </p>
         </div>
-    </footer>
 
-    <!-- Scripts -->
-    <script src="js/main.js"></script>
-</body>
+        <div id="acknowledgement" style="position: relative; margin-top: 40px; margin-bottom: 0px;">
+            <h2 class="text" style="margin-top:0px; margin-bottom:10px">Acknowledgement</h2>
+            <p class="text">
+                We would like to thank to <a href="https://cambrian-mllm.github.io/Cambrian">Cambrian</a> authors for providing this webpage template.
+            </p>
+        </div>
+
+        </d-article>
+        <!-- <d-appendix>
+            <h3>BibTeX</h3>
+            <p class="bibtex">
+                @article{zhang2025autotom,<br>
+                &nbsp;&nbsp;title={AutoToM: Automated Bayesian Inverse Planning and Model Discovery for Open-ended Theory of Mind},<br>
+                &nbsp;&nbsp;author={Zhang, Zhining and Jin, Chuanyang and Jia, Mung Yao and Shu, Tianmin},<br>
+                &nbsp;&nbsp;journal={arXiv preprint arXiv:2502.15676},<br>
+                &nbsp;&nbsp;year={2025}<br>
+                }
+            </p>
+
+            <d-footnote-list></d-footnote-list>
+            <d-citation-list></d-citation-list>
+        </d-appendix>    -->
+        <!-- bibliography will be inlined during Distill pipeline's pre-rendering -->
+        <d-bibliography src="bibliography.bib"></d-bibliography>
+        <script src="./static/js/nav-bar.js"></script>
+    </body>
 </html>
