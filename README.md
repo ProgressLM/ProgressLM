@@ -152,21 +152,6 @@ llamafactory-cli export LLaMA-Factory/our_scripts/merge_qwen2_5vl_lora.yaml
 llamafactory-cli export LLaMA-Factory/our_scripts/merge_qwen25vl_7b_lora.yaml
 ```
 
-### Key SFT Parameters
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `model_name_or_path` | Base model path | `Qwen/Qwen2.5-VL-3B-Instruct` |
-| `dataset` | Training dataset name | `progresslm_think` |
-| `output_dir` | Output directory | `/path/to/output` |
-| `lora_rank` | LoRA rank | `8` |
-| `lora_alpha` | LoRA alpha | `16` |
-| `learning_rate` | Learning rate | `1.0e-4` |
-| `num_train_epochs` | Training epochs | `3.0` |
-| `per_device_train_batch_size` | Batch size per GPU | `2` |
-| `gradient_accumulation_steps` | Gradient accumulation | `8` |
-
-
 ### Scaling more CoT Data?
 
 **Step 1: Generate CoT responses using Qwen2.5-VL**
@@ -192,20 +177,6 @@ GPU_IDS=0,1,2,3 \
 BATCH_SIZE=2 \
 bash think_visual_demo.sh
 ```
-
-**Environment Variables:**
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MODEL_PATH` | Path to Qwen2.5-VL model | Required |
-| `DATASET_PATH` | Input JSONL dataset path | Required |
-| `IMAGE_ROOT` | Root directory for images | Required |
-| `OUTPUT_DIR` | Output directory for results | Required |
-| `GPU_IDS` | Comma-separated GPU IDs | `0,1,2,3` |
-| `BATCH_SIZE` | Batch size per GPU | `5` (text) / `2` (visual) |
-| `NUM_INFERENCES` | Inferences per sample | `1` |
-| `TEMPERATURE` | Sampling temperature | `0.6` |
-| `LIMIT` | Limit samples (-1 for all) | `-1` |
 
 We also provide scripts for **Qwen2.5-VL-72B** with multi-GPU model parallelism:
 
@@ -276,29 +247,16 @@ bash progresslm/run_grpo_3b_multinode.sh
 bash progresslm/run_grpo_7b.sh
 ```
 
-### Key RL Parameters
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `worker.actor.model.model_path` | SFT model path | `/path/to/sft_model` |
-| `trainer.save_checkpoint_path` | Checkpoint path | `/path/to/rl_ckpt` |
-| `algorithm.kl_coef` | KL penalty coefficient | `1.0e-2` |
-| `algorithm.kl_target` | Target KL divergence | `0.1` |
-| `worker.rollout.n` | Number of rollouts | `4` |
-| `worker.rollout.temperature` | Sampling temperature | `0.6` |
-| `worker.actor.optim.lr` | Learning rate | `1.0e-6` |
-| `trainer.total_epochs` | Training epochs | `2` |
-
 ## Evaluation
 
 ### Supported Models
 
 | Model | Directory | Description |
 |-------|-----------|-------------|
-| Qwen2.5-VL | `eval/qwen25vl/` | Qwen2.5-VL series (3B, 7B, 72B) |
-| Qwen3-VL | `eval/qwen3vl/` | Qwen3-VL series |
-| InternVL | `eval/internvl/` | InternVL series |
-| OpenAI GPT | `eval/openai/` | GPT-4V, GPT-4o via API |
+| Qwen2.5-VL | `eval/qwen25vl/` | Qwen2.5-VL series (3B, 7B, 32B, 72B) |
+| Qwen3-VL | `eval/qwen3vl/` | Qwen3-VL series (2B, 4B, 8B, 32B) |
+| Intern3.5-VL | `eval/internvl/` | Intern3.5-VL series (4B, 8B, 14B, 38B) |
+| OpenAI GPT-5 | `eval/openai/` | GPT-5, GPT-5-mini via API |
 
 ### Benchmark Scripts
 
