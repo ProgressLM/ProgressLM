@@ -429,9 +429,10 @@ python run_visual_demo.py --dataset-path /path/to/data.jsonl
 If you find this work useful, please cite our paper:
 
 ```bibtex
-@article{zhang2025progresslm,
+@article{zhang2026progresslm,
   title={ProgressLM: Towards Progress Reasoning in Vision-Language Models},
   author={Zhang, Jianshu and Qian, Chengxuan and Sun, Haosen and Lu, Haoran and Wang, Dingcheng and Xue, Letian and Liu, Han},
-  year={2025}
+  journal={arXiv preprint arXiv:2601.15224},
+  year={2026}
 }
 ```
