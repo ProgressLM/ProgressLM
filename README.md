@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://progresslm.github.io/ProgressLM/"><img src="https://img.shields.io/badge/🌐-Website-blue?style=for-the-badge" alt="Website" /></a>
-  <a href="https://github.com/ProgressLM/ProgressLM/blob/main/public/ProgressLM_Tech_Report.pdf"><img src="https://img.shields.io/badge/📄-Paper-black?style=for-the-badge" alt="Paper" /></a>
+  <a href="https://arxiv.org/abs/2601.15224"><img src="https://img.shields.io/badge/📄-Paper-black?style=for-the-badge" alt="Paper" /></a>
   <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-SFT"><img src="https://img.shields.io/badge/🤗-SFT Model-orange?style=for-the-badge" alt="SFT Model" /></a>
   <a href="https://huggingface.co/Raymond-Qiancx/ProgressLM-3B-RL"><img src="https://img.shields.io/badge/🤗-RL Model-orange?style=for-the-badge" alt="RL Model" /></a>
   <a href="https://huggingface.co/datasets/Raymond-Qiancx/ProgressLM-Dataset"><img src="https://img.shields.io/badge/🤗-Dataset-yellow?style=for-the-badge" alt="Dataset" /></a>
