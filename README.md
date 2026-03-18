@@ -2,9 +2,9 @@
   <img src="docs/imgs/icon.png" height="30" />&nbsp;ProgressLM: Towards Progress Reasoning in Vision-Language Models
 </h1>
 
-<p align="center">
-  <b>ICLR 2026 Workshop on World Models</b>
-</p>
+<h3 align="center">
+  ICLR 2026 Workshop on World Models
+</h3>
 
 <p align="center">
   <a href="https://sterzhang.github.io/">Jianshu Zhang</a>*, <a href="https://qiancx.com/">Chengxuan Qian</a>*, <a href="https://haosensun.github.io/">Haosen Sun</a>, <a href="https://luhr2003.github.io/">Haoran Lu</a>, <a href="https://www.linkedin.com/in/desmond-dingcheng-wang/">Dingcheng Wang</a>, Letian Xue, <a href="https://www.mccormick.northwestern.edu/research-faculty/directory/profiles/liu-han.html">Han Liu</a>
