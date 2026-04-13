@@ -3,7 +3,7 @@
 </h1>
 
 <h3 align="center">
-  ICLR 2026 Workshop on World Models
+  ACL 2026 Main Conference & ICLR 2026 Workshop on World Models
 </h3>
 
 <p align="center">
