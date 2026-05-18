@@ -3,13 +3,19 @@
 </h1>
 
 <h3 align="center">
-  ACL 2026 Main Conference & ICLR 2026 Workshop on World Models
+  🏆 ACL 2026 Oral Presentation & ICLR 2026 Workshop on World Models
 </h3>
+
+<p align="center">
+  We will present it on Tuesday, July 7 at Harbor H-I during Oral Session F: Multimodality and Language Grounding to Vision, Robotics and Beyond 2, 09:00-10:30. Welcome to join us!
+</p>
 
 <p align="center">
   <a href="https://sterzhang.github.io/">Jianshu Zhang</a>*, <a href="https://qiancx.com/">Chengxuan Qian</a>*, <a href="https://haosensun.github.io/">Haosen Sun</a>, <a href="https://luhr2003.github.io/">Haoran Lu</a>, <a href="https://www.linkedin.com/in/desmond-dingcheng-wang/">Dingcheng Wang</a>, Letian Xue, <a href="https://www.mccormick.northwestern.edu/research-faculty/directory/profiles/liu-han.html">Han Liu</a>
   <br>
   <i>(* equal contribution)</i>
+  <br>
+  <sup>1</sup>Northwestern University &emsp; <sup>2</sup>University of California, Santa Barbara
 </p>
 
 <p align="center">

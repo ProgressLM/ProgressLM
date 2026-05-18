@@ -31,36 +31,50 @@ body {
 }
 
 .icon-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap; /* Allow wrapping to the next line */
-    width: 100%;
-    padding: 20px; /* Padding around the images */
-    line-height: 1rem;
+    gap: 0.75rem;
+    width: 150%;
+    margin: 0.25rem 0 1rem -20%;
+    padding: 0;
+    line-height: 1.05;
 }
 
 .icon-link {
     display: flex;
-    flex-direction: column; /* Stack image and text vertically */
-    align-items: center; /* Center the image and text */
-    text-align: center; /* Center text below the image */
-    color: inherit; /* Inherit color from parent */
-    padding: 10px; /* Add padding around the link */
-    margin: 10px; /* Add margin around each link for spacing */
-    border: 3px solid #508af6;
-    border-radius: 10px;
-    background-color: #d6eefb;
-    flex: 1 1 100px; /* Allow flex items to grow and shrink */
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    min-height: 64px;
+    color: #253247;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(80, 138, 246, 0.45);
+    border-left: 4px solid #508af6;
+    border-radius: 8px;
+    background-color: #edf7ff;
+    text-align: left;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+    transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
 }
 
 .icon-link:hover {
-    background-color: #88c2fa;
+    background-color: #dceeff;
+    border-color: #508af6;
+    transform: translateY(-1px);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+    .icon-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        margin: 0.25rem 0 1rem 0;
+    }
+
     .icon-link {
-        flex: 1 1 45%; /* Allow each icon link to take up about half the width */
+        justify-content: flex-start;
     }
 }
 
@@ -74,6 +88,10 @@ body {
 .icon-item {
     align-items: center;
     display: flex;
+}
+
+.icon-item div {
+    text-align: justify;
 }
 
 .icon-item img {
@@ -111,8 +129,28 @@ body {
     color: #FEAE6F;
 }
 
+.hero-award {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.15rem 0 0.8rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid rgba(254, 174, 111, 0.55);
+    border-radius: 999px;
+    background: rgba(255, 247, 212, 0.12);
+    color: #FFF7D4;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.hero-award-symbol {
+    font-size: 1.1em;
+}
+
 .header-container p {
     font-size: 1.2rem;
+    text-align: justify;
 }
 
 @media (max-width: 768px) {
@@ -190,6 +228,17 @@ body {
   color: #fff; /* White text on hover */
 }
 
+.button-container a.button.dark-button {
+  background-color: #24292f;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.button-container a.button.dark-button:hover {
+  background-color: #0969da;
+  color: #fff;
+}
+
 /* Styles for larger screens using a media query */
 @media (min-width: 600px) {
   .header-container {
@@ -231,26 +280,67 @@ body {
 
 
 .byline {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 0 5px 10px; /* Add padding to the top and bottom */
-  margin-bottom: 20px;
+  width: 150%;
+  margin: 0 0 4px -20%;
+  box-sizing: border-box;
 }
 
 .byline-container {
-    padding-top: 2rem;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    padding-top: 1rem;
     padding-bottom: 0.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
     text-align: center;  /* Center align the text */
 }
 
 .author-list {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 1.5rem;
+    column-gap: 1.5rem;
+    row-gap: 0.2rem;
     margin: 0;
-    overflow-x: auto;
+    overflow-x: visible;
     white-space: nowrap;
+}
+
+.presentation-notice {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 1.1rem auto 0.8rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(153, 27, 27, 0.22);
+    border-left: 5px solid #b91c1c;
+    border-radius: 8px;
+    background: #fff8f8;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    text-align: justify;
+}
+
+.presentation-title {
+    color: #991b1b;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 0.35rem;
+    text-align: center;
+}
+
+.presentation-symbol {
+    display: inline-block;
+    margin: 0 0.25rem;
+    font-size: 1.05em;
+}
+
+.presentation-details {
+    color: #333;
+    font-size: 1rem;
+    line-height: 1.55;
+    text-align: justify;
 }
 
 
@@ -1002,18 +1092,21 @@ aside blockquote {
 
 
 .click-hint{
-  display: block;
-  margin: auto;
-  width: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 150%;
+  margin: 0.75rem 0 1.5rem -20%;
+  box-sizing: border-box;
   font-size: 15px; /* Adjust the font size */
   color: #333333; /* Set text color */
-  /* background-color: #f2f2f2; */
-  border: 2px solid #cccccc; /* Add border */
-  padding: 10px; /* Add padding around text */
-  border-radius: 5px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  background-color: #f8fbff;
+  border: 1px solid rgba(80, 138, 246, 0.35);
+  padding: 0.75rem 1rem; /* Add padding around text */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08); /* Add a subtle shadow */
   text-align: center; /* Center the text */
-  margin-bottom: 20px; /* Add some margin at the bottom */
 }
 
 .click-hint strong {
@@ -1046,8 +1139,9 @@ d-article > div > h3 {
 .text {
   /* width: 150%; */
   width: 150%;
-  margin: 1em 0 1em -20%;
+  margin: 0.5em 0 1em -20%;
   font-size: 1.2rem;
+  text-align: justify;
 }
 
 h1.text {
@@ -1101,7 +1195,7 @@ h2.text {
 
 figure {
     width: 150%;
-    margin-left: -20%;
+    margin: 0.5em 0 0.5em -20%;
 }
 
 #fig-vision_connector figure {
@@ -1131,7 +1225,7 @@ figure {
 figcaption {
     font-size: 1.125em;
     margin-top: 0.25em;
-    text-align: center;
+    text-align: justify;
 }
 
 /* Default: show iframe, hide image */
@@ -1336,7 +1430,17 @@ div.takeaway-tags img {
 
   .text {
     width: 100%;
-    margin: 1em 0 1em 0;
+    margin: 0.5em 0 1em 0;
+  }
+
+  .byline {
+    width: 100%;
+    margin: 0 0 4px 0;
+  }
+
+  .click-hint {
+    width: 100%;
+    margin: 0.75rem 0 1.5rem 0;
   }
 
   div.takeaway-tags img {
