@@ -9,7 +9,7 @@
 
 <html lang="en">
     <head>
-        <title>PROGRESSLM</title>
+        <title>ProgressLM</title>
         <link rel="icon" type="image/x-icon" href="/static/img/icons/icon.png">
 
         <meta charset="utf-8">
@@ -19,7 +19,7 @@
         <meta property="og:url" content="" />
         <!-- <meta property="og:image" content="https://cambrian-mllm.github.io/static/img/preview.png" /> -->
         <meta property="og:image" content="" />
-        <meta property="og:title" content="PROGRESSLM: Towards Progress Reasoning in Vision-Language Models" />
+        <meta property="og:title" content="ProgressLM: Towards Progress Reasoning in Vision-Language Models" />
         <meta property="og:description" content="" />
         
         <!-- Twitter -->
@@ -27,7 +27,7 @@
         <meta name="twitter:card" content="summary_large_image" />
         <!-- <meta property="og:image" content="https://cambrian-mllm.github.io/static/img/preview.png" /> -->
         <meta property="og:image" content="" />
-        <meta name="twitter:title" content="PROGRESSLM: Towards Progress Reasoning in Vision-Language Models" />
+        <meta name="twitter:title" content="ProgressLM: Towards Progress Reasoning in Vision-Language Models" />
         <meta name="twitter:description" content="" />
 
         <script src="./static/js/distill_template.v2.js"></script>
@@ -62,7 +62,7 @@
         <div class="header-wrapper">
             <div class="header-container" id="header-container">
                 <div class="header-content">
-                    <h1 style="margin-top: 0px"><i>PROGRESSLM:</i></h1>
+                    <h1 style="margin-top: 0px"><i>ProgressLM:</i></h1>
                     <h2>Towards Progress Reasoning in <br> Vision-Language Models</h2>
                         <p>
                             Humans can perceive "what is happening in a scene" and situate it within the dynamic structure of a task, allowing them to "estimate task progress from a single observation". We study whether VLMs possess a similar form of <em><strong>progress reasoning</strong></em> by following:
@@ -122,18 +122,17 @@
     <d-article>
         <div class="byline">
             <div class="byline-container">
-                <p>
-                    <a href="https://sterzhang.github.io/" class="author-link" target="_blank">Jianshu Zhang</a><sup>1*</sup> &emsp;
-                    <a href="https://qiancx.com/" class="author-link" target="_blank">Chengxuan Qian</a><sup>2*</sup> &emsp;
-                    <a href="https://haosensun.github.io/" class="author-link" target="_blank">Haosen Sun</a><sup>1</sup> &emsp;
-                    <a href="https://luhr2003.github.io/" class="author-link" target="_blank">Haoran Lu</a><sup>1</sup> &emsp;
-                    <a href="" class="author-link" target="_blank">Letian Xue</a><sup>1</sup> &emsp;
-                    <a href="https://www.linkedin.com/in/desmond-dingcheng-wang/" class="author-link" target="_blank">Dingcheng Wang</a><sup>1</sup> &emsp;
-                    <a href="https://www.mccormick.northwestern.edu/research-faculty/directory/profiles/liu-han.html" class="author-link" target="_blank">Han Liu</a><sup>1</sup> &emsp;
-                    <p></p>
+                <p class="author-list">
+                    <span><a href="https://sterzhang.github.io/" class="author-link" target="_blank">Jianshu Zhang</a><sup>1*</sup></span>
+                    <span><a href="https://qiancx.com/" class="author-link" target="_blank">Chengxuan Qian</a><sup>2*</sup></span>
+                    <span><a href="https://haosensun.github.io/" class="author-link" target="_blank">Haosen Sun</a><sup>1</sup></span>
+                    <span><a href="https://luhr2003.github.io/" class="author-link" target="_blank">Haoran Lu</a><sup>1</sup></span>
+                    <span><a href="" class="author-link" target="_blank">Letian Xue</a><sup>1</sup></span>
+                    <span><a href="https://www.linkedin.com/in/desmond-dingcheng-wang/" class="author-link" target="_blank">Dingcheng Wang</a><sup>1</sup></span>
+                    <span><a href="https://www.mccormick.northwestern.edu/research-faculty/directory/profiles/liu-han.html" class="author-link" target="_blank">Han Liu</a><sup>1</sup></span>
                 </p>
                     <sup>1</sup><a href="" class="author-link" target="_blank">Northwestern University</a> &emsp;
-                    <sup>2</sup><a href="" class="author-link" target="_blank">Arcadia University</a>
+                    <sup>2</sup><a href="" class="author-link" target="_blank">University of California, Santa Barbara</a>
                 <!-- <p style="text-align: center; font-size: 1.35em; color: red; font-weight: bold;">
                     NeurIPS 2025 (Spotlight)
                 </p> -->
@@ -150,11 +149,11 @@
             what is visible, it remains unclear whether they can infer how far a task has progressed from partial
             observations. To this end, we first introduce PROGRESS-BENCH, a benchmark for systematically
             evaluating progress reasoning in VLMs. Beyond benchmarking, we further explore a human inspired two-stage progress reasoning paradigm through both training-free prompting and
-            training-based approach based on curated dataset PROGRESSLM-45K. Experiments on 14 VLMs
+            training-based approach based on curated dataset ProgressLM-45K. Experiments on 14 VLMs
             show that most models are not yet ready for task progress estimation, exhibiting sensitivity
             to demonstration modality and viewpoint changes, as well as poor handling of unanswerable
             cases. While training-free prompting that enforces structured progress reasoning yields limited
-            and model-dependent gains, the training-based PROGRESSLM-3B achieves consistent improvements even at a small model scale, despite being trained on a task set fully disjoint from the
+            and model-dependent gains, the training-based ProgressLM-3B achieves consistent improvements even at a small model scale, despite being trained on a task set fully disjoint from the
             evaluation tasks. Further analyses reveal characteristic error patterns and clarify when and why
             progress reasoning succeeds or fails.
 
@@ -635,20 +634,20 @@
         </div>
 
         </d-article>
-        <!-- <d-appendix>
+        <d-appendix>
             <h3>BibTeX</h3>
             <p class="bibtex">
-                @article{zhang2025autotom,<br>
-                &nbsp;&nbsp;title={AutoToM: Automated Bayesian Inverse Planning and Model Discovery for Open-ended Theory of Mind},<br>
-                &nbsp;&nbsp;author={Zhang, Zhining and Jin, Chuanyang and Jia, Mung Yao and Shu, Tianmin},<br>
-                &nbsp;&nbsp;journal={arXiv preprint arXiv:2502.15676},<br>
-                &nbsp;&nbsp;year={2025}<br>
+                @article{zhang2026progresslm,<br>
+                &nbsp;&nbsp;title={ProgressLM: Towards Progress Reasoning in Vision-Language Models},<br>
+                &nbsp;&nbsp;author={Zhang, Jianshu and Qian, Chengxuan and Sun, Haosen and Lu, Haoran and Wang, Dingcheng and Xue, Letian and Liu, Han},<br>
+                &nbsp;&nbsp;journal={arXiv preprint arXiv:2601.15224},<br>
+                &nbsp;&nbsp;year={2026}<br>
                 }
             </p>
 
             <d-footnote-list></d-footnote-list>
             <d-citation-list></d-citation-list>
-        </d-appendix>    -->
+        </d-appendix>
         <!-- bibliography will be inlined during Distill pipeline's pre-rendering -->
         <d-bibliography src="bibliography.bib"></d-bibliography>
         <script src="./static/js/nav-bar.js"></script>
