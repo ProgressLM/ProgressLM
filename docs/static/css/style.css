@@ -290,7 +290,7 @@ body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
-    padding-top: 1rem;
+    padding-top: 0.35rem;
     padding-bottom: 0.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
@@ -311,7 +311,7 @@ body {
 .presentation-notice {
     width: 100%;
     box-sizing: border-box;
-    margin: 1.1rem auto 0.8rem;
+    margin: 0.35rem auto 0.8rem;
     padding: 1rem 1.25rem;
     border: 1px solid rgba(153, 27, 27, 0.22);
     border-left: 5px solid #b91c1c;

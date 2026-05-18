@@ -131,15 +131,13 @@
                     <span><a href="https://qiancx.com/" class="author-link" target="_blank">Chengxuan Qian</a><sup>2*</sup></span>
                     <span><a href="https://haosensun.github.io/" class="author-link" target="_blank">Haosen Sun</a><sup>1</sup></span>
                     <span><a href="https://luhr2003.github.io/" class="author-link" target="_blank">Haoran Lu</a><sup>1</sup></span>
-                    <span><a href="" class="author-link" target="_blank">Letian Xue</a><sup>1</sup></span>
+                    <span><a href="https://openreview.net/profile?id=~Letian_Xue1" class="author-link" target="_blank">Letian Xue</a><sup>1</sup></span>
                     <span><a href="https://www.linkedin.com/in/desmond-dingcheng-wang/" class="author-link" target="_blank">Dingcheng Wang</a><sup>1</sup></span>
                     <span><a href="https://www.mccormick.northwestern.edu/research-faculty/directory/profiles/liu-han.html" class="author-link" target="_blank">Han Liu</a><sup>1</sup></span>
                 </p>
                     <sup>1</sup><a href="" class="author-link" target="_blank">Northwestern University</a> &emsp;
-                    <sup>2</sup><a href="" class="author-link" target="_blank">University of California, Santa Barbara</a>
-                <p style="text-align: center; margin-bottom: 0;">
-                    <span class="author-note"><sup>*</sup>Equal Contribution</span>&emsp;
-                </p>
+                    <sup>2</sup><a href="" class="author-link" target="_blank">University of California, Santa Barbara</a> &emsp;
+                    <span class="author-note"><sup>*</sup>Equal Contribution</span>
                 <div class="presentation-notice">
                     <div class="presentation-title">
                         <span class="presentation-symbol">&#127881;</span>
@@ -153,9 +151,30 @@
             </div>
         </div>
 
-        
+        <d-figure id="fig-teaser" >
+                <figure>
+                    <div style="text-align: center;">
+                        <img data-zoomable="" draggable="false" src="static/img/teaser.png" alt="Teaser" style="width: 85%;">
+                    </div>
+                    <figcaption>
+                        <strong>Figure 1:</strong>
+                        Given a task demonstration and a single observation, the goal is to estimate
+                        <em>how much of the task has already been completed</em>.
+                        Direct prediction can often judge whether the task is unfinished, but struggles to assign a progress score.
+                        Progress reasoning instead follows a coarse-to-fine process:
+                        it first performs
+                        <span style="color: rgb(230,127,68);"><em>episodic retrieval</em></span>
+                        to coarsely locate the observation along the demonstrated task,
+                        then uses
+                        <span style="color: rgb(52,110,187);"><em>mental simulation</em></span>
+                        to imagine the transition from the anchor to the current observation,
+                        enabling a fine-grained estimate of <em>completed progress</em>,
+                        which leads to accurate and interpretable progress estimation.
+                    </figcaption>
+                </figure>
+        </d-figure>
+
         <p class="text abstract">
-            
             Estimating task progress requires reasoning over long-horizon dynamics rather than recognizing static visual content. While modern Vision-Language Models (VLMs) excel at describing
             what is visible, it remains unclear whether they can infer how far a task has progressed from partial
             observations. To this end, we first introduce PROGRESS-BENCH, a benchmark for systematically
@@ -167,30 +186,6 @@
             and model-dependent gains, the training-based ProgressLM-3B achieves consistent improvements even at a small model scale, despite being trained on a task set fully disjoint from the
             evaluation tasks. Further analyses reveal characteristic error patterns and clarify when and why
             progress reasoning succeeds or fails.
-
-            <d-figure id="fig-teaser" >
-                    <figure>
-                        <div style="text-align: center;">
-                            <img data-zoomable="" draggable="false" src="static/img/teaser.png" alt="Teaser" style="width: 85%;">
-                        </div>
-                        <figcaption>
-                            <strong>Figure 1:</strong>
-                            Given a task demonstration and a single observation, the goal is to estimate
-                            <em>how much of the task has already been completed</em>.
-                            Direct prediction can often judge whether the task is unfinished, but struggles to assign a progress score.
-                            Progress reasoning instead follows a coarse-to-fine process:
-                            it first performs
-                            <span style="color: rgb(230,127,68);"><em>episodic retrieval</em></span>
-                            to coarsely locate the observation along the demonstrated task,
-                            then uses
-                            <span style="color: rgb(52,110,187);"><em>mental simulation</em></span>
-                            to imagine the transition from the anchor to the current observation,
-                            enabling a fine-grained estimate of <em>completed progress</em>,
-                            which leads to accurate and interpretable progress estimation.
-                        </figcaption>
-                    </figure>
-
-                </d-figure>
         </p>
 
         <div class="icon-row">
